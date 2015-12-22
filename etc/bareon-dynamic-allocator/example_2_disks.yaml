@@ -1,0 +1,14 @@
+disks:
+  - id: /dev/disk/by-id/id-for-sda
+    path: /dev/disk/by-path/path-for-sda
+    dev: /dev/sda
+    type: hdd
+    vendor: Hitachi
+    size: 30
+
+  - id: /dev/disk/by-id/id-for-sdb
+    path: /dev/disk/by-path/path-for-sdb
+    dev: /dev/sdb
+    type: hdd
+    vendor: Samsung
+    size: 40
