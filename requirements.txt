@@ -3,3 +3,9 @@
 # process, which may cause wedges in the gate later.
 
 pbr>=1.6
+oslo.config>=1.6.0
+oslo.serialization>=1.4.0,<2.0
+PyYAML==3.10
+six>=1.5.2
+scipy
+numpy
