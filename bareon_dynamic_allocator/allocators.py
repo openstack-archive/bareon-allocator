@@ -18,18 +18,11 @@ from scipy.optimize import linprog
 from scipy.ndimage.interpolation import shift
 
 import numpy as np
-from numpy import array
-from numpy import zeros
-from numpy import append
-from numpy import vstack
-from numpy import concatenate
-from numpy import put
-from numpy import roll
 
 
 def shift(arr, steps, val=0):
-    res_arr = roll(arr, steps)
-    put(res_arr, range(steps), val)
+    res_arr = np.roll(arr, steps)
+    np.put(res_arr, range(steps), val)
 
     return res_arr
 
@@ -94,17 +87,13 @@ class DynamicAllocationLinearProgram(object):
         # An array of values representing right side of equation,
         # left side is represented by row of `equality_constraint_matrix`
         # matrix
-        self.equality_constraint_vector = array([])
+        self.equality_constraint_vector = np.array([])
 
         # Specify boundaries of each x in the next format (min, max). Use
         # None for one of min or max when there is no bound.
-        self.bounds = array([])
+        self.bounds = np.array([])
 
         self._initialize_equation(disks, spaces)
-
-        print '*' * 30
-        print self.equality_constraint_matrix
-        print self.objective_function_coefficients
 
     def solve(self):
         solution = linprog(
@@ -120,7 +109,7 @@ class DynamicAllocationLinearProgram(object):
         for d in disks:
             # Initialize constraints, each row in the matrix should
             # be equal to size of the disk
-            self.equality_constraint_vector = append(self.equality_constraint_vector, d.size)
+            self.equality_constraint_vector = np.append(self.equality_constraint_vector, d.size)
 
         # Initialize the matrix
         # In case of 2 spaces and 3 disks the result should be:
@@ -139,7 +128,7 @@ class DynamicAllocationLinearProgram(object):
         # For each space x (size of the space) is represented
         # for each disk as separate variable, so for each
         # disk we have len(spaces) * len(disks) sizes
-        equality_matrix_row = zeros(len(spaces) * len(disks))
+        equality_matrix_row = np.zeros(len(spaces) * len(disks))
         self._init_objective_function_coefficient(len(spaces) * len(disks))
 
         # Set first len(spaces) elements to 1
@@ -167,4 +156,4 @@ class DynamicAllocationLinearProgram(object):
         self.objective_function_coefficients = [-1] * size
 
     def _add_bound(self, min_, max_):
-        append(self.bounds.append, (min_, max_))
+        np.append(self.bounds, (min_, max_))
