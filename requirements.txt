@@ -10,3 +10,4 @@ PyYAML==3.10
 six>=1.5.2
 scipy
 numpy
+svgwrite

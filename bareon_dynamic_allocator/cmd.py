@@ -12,8 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from pprint import pprint
-
 import sys
 
 from oslo_config import cfg
@@ -21,6 +19,7 @@ from oslo_log import log
 
 from bareon_dynamic_allocator import utils
 from bareon_dynamic_allocator.allocators import DynamicAllocator
+from bareon_dynamic_allocator import viewer
 
 
 cli_opts = [
@@ -75,7 +74,8 @@ def parse_configs(conf):
 
 
 def save_result(data, output_file):
-    pprint(data)
+    viewer.StdoutViewer(data).show_me()
+    viewer.SVGViewer(data).show_me()
 
 
 def validate_schema(schema):

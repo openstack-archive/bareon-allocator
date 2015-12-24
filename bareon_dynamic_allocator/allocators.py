@@ -129,7 +129,7 @@ class DynamicAllocationLinearProgram(object):
         spaces_grouped_by_disk = list(grouper(solution.x, len(self.spaces)))
         for disk_i in range(len(self.disks)):
             disk_id = self.disks[disk_i].id
-            disk = {'disk_id': disk_id, 'spaces': []}
+            disk = {'disk_id': disk_id, 'size': self.disks[disk_i].size, 'spaces': []}
             spaces_for_disk = spaces_grouped_by_disk[disk_i]
 
             for space_i, space_size in enumerate(spaces_for_disk):
