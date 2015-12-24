@@ -105,23 +105,74 @@ class DynamicAllocationLinearProgram(object):
         # matrix
         self.equality_constraint_vector = np.array([])
 
+        self.upper_bound_constraint_matrix = []
+        self.upper_bound_constraint_vector = []
+        self.lower_bound_constraint_matrix = []
+        self.lower_bound_constraint_vector = []
+
         # Specify boundaries of each x in the next format (min, max). Use
         # None for one of min or max when there is no bound.
         self.bounds = np.array([])
 
+        # For each space, xn (size of the space) is represented
+        # for each disk as separate variable, so for each
+        # disk we have len(spaces) * len(disks) sizes
+        self.x_amount = len(self.disks) * len(self.spaces)
+
         self._init_equation(self.disks, self.spaces)
+        self._init_min_max()
 
     def solve(self):
+        upper_bound_matrix = self._make_upper_bound_constraint_matrix() or None
+        upper_bound_vector = self._make_upper_bound_constraint_vector() or None
+
         solution = linprog(
             self.objective_function_coefficients,
             A_eq=self.equality_constraint_matrix,
             b_eq=self.equality_constraint_vector,
+            A_ub=upper_bound_matrix,
+            b_ub=upper_bound_vector,
             bounds=self.bounds,
             options={"disp": False})
 
         LOG.debug("Solution: %s", solution)
 
         return self._convert_solution(solution)
+
+
+    def _init_min_max(self):
+        for space_idx, space in enumerate(self.spaces):
+            row = self._make_matrix_row()
+            max_size = getattr(space, 'max_size', None)
+            min_size = getattr(space, 'min_size', None)
+
+            for disk_idx in range(len(self.disks)):
+                row[disk_idx * len(self.spaces) + space_idx] = 1
+
+            if min_size is not None:
+                self.lower_bound_constraint_matrix.append(row)
+                self.lower_bound_constraint_vector.append(min_size)
+
+            if max_size is not None:
+                self.upper_bound_constraint_matrix.append(row)
+                self.upper_bound_constraint_vector.append(max_size)
+
+    def _make_matrix_row(self):
+        return np.zeros(self.x_amount)
+
+    def _make_upper_bound_constraint_matrix(self):
+        """Upper bound constraint matrix consist of upper bound
+        matrix and lower bound matrix wich changed sign
+        """
+        return (self.upper_bound_constraint_matrix +
+                [[-i for i in row] for row in self.lower_bound_constraint_matrix])
+
+    def _make_upper_bound_constraint_vector(self):
+        """Upper bound constraint vector consist of upper bound
+        and lower bound, with changed sign
+        """
+        return (self.upper_bound_constraint_vector +
+                [-i for i in self.lower_bound_constraint_vector])
 
     def _convert_solution(self, solution):
         result = []
@@ -161,10 +212,7 @@ class DynamicAllocationLinearProgram(object):
         #  0, - x5 multiplier, size of space 1 on 3rd disk, 0 for the first
         #  0] - x6 multiplier, size of space 2 on 3rd disk, 0 for the first
 
-        # For each space, xn (size of the space) is represented
-        # for each disk as separate variable, so for each
-        # disk we have len(spaces) * len(disks) sizes
-        equality_matrix_row = np.zeros(len(spaces) * len(disks))
+        equality_matrix_row = self._make_matrix_row()
 
         # Amount of coefficients is equal to amount of columns in the matrix
         self._init_objective_function_coefficient(len(spaces) * len(disks))
@@ -175,6 +223,10 @@ class DynamicAllocationLinearProgram(object):
         for _ in range(len(disks)):
             self.equality_constraint_matrix.append(equality_matrix_row)
             equality_matrix_row = shift(equality_matrix_row, len(spaces), val=0)
+
+        # Size of each space should be more or equal to 0
+        for _ in range(self.x_amount):
+            self._add_bound(0, None)
 
     def _add_objective_function_coefficient(self):
         # By default the algorithm tries to minimize the solution
