@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import itertools
 import six
 
 from scipy.optimize import linprog
@@ -19,12 +20,25 @@ from scipy.ndimage.interpolation import shift
 
 import numpy as np
 
+from oslo_log import log
+
+
+LOG = log.getLogger(__name__)
+
 
 def shift(arr, steps, val=0):
     res_arr = np.roll(arr, steps)
     np.put(res_arr, range(steps), val)
 
     return res_arr
+
+
+def grouper(iterable, n, fillvalue=None):
+    """Collect data into fixed-length chunks or blocks
+    Source: https://docs.python.org/2/library/itertools.html#recipes
+    """
+    args = [iter(iterable)] * n
+    return itertools.izip_longest(fillvalue=fillvalue, *args)
 
 
 class Disk(object):
@@ -73,6 +87,8 @@ class DynamicAllocationLinearProgram(object):
     """
 
     def __init__(self, disks, spaces):
+        self.disks = disks
+        self.spaces = spaces
         # Coefficients of the linear objective minimization function.
         # During iteration over vertexes the function is used to identify
         # if current solution (vertex) satisfies the equation more, than
@@ -93,7 +109,7 @@ class DynamicAllocationLinearProgram(object):
         # None for one of min or max when there is no bound.
         self.bounds = np.array([])
 
-        self._initialize_equation(disks, spaces)
+        self._init_equation(self.disks, self.spaces)
 
     def solve(self):
         solution = linprog(
@@ -101,11 +117,28 @@ class DynamicAllocationLinearProgram(object):
             A_eq=self.equality_constraint_matrix,
             b_eq=self.equality_constraint_vector,
             bounds=self.bounds,
-            options={"disp": True})
+            options={"disp": False})
 
-        return solution.x
+        LOG.debug("Solution: %s", solution)
 
-    def _initialize_equation(self, disks, spaces):
+        return self._convert_solution(solution)
+
+    def _convert_solution(self, solution):
+        result = {}
+
+        spaces_grouped_by_disk = list(grouper(solution.x, len(self.spaces)))
+        for disk_i in range(len(self.disks)):
+            disk_id = self.disks[disk_i].id
+            result.setdefault(disk_id, [])
+            spaces_for_disk = spaces_grouped_by_disk[disk_i]
+            for space_i, space_size in enumerate(spaces_for_disk):
+                result[disk_id].append({
+                    'space_id': self.spaces[space_i].id,
+                    'size': space_size})
+
+        return result
+
+    def _init_equation(self, disks, spaces):
         for d in disks:
             # Initialize constraints, each row in the matrix should
             # be equal to size of the disk
@@ -125,10 +158,12 @@ class DynamicAllocationLinearProgram(object):
         #  0, - x5 multiplier, size of space 1 on 3rd disk, 0 for the first
         #  0] - x6 multiplier, size of space 2 on 3rd disk, 0 for the first
 
-        # For each space x (size of the space) is represented
+        # For each space, xn (size of the space) is represented
         # for each disk as separate variable, so for each
         # disk we have len(spaces) * len(disks) sizes
         equality_matrix_row = np.zeros(len(spaces) * len(disks))
+
+        # Amount of coefficients is equal to amount of columns in the matrix
         self._init_objective_function_coefficient(len(spaces) * len(disks))
 
         # Set first len(spaces) elements to 1
@@ -137,12 +172,6 @@ class DynamicAllocationLinearProgram(object):
         for _ in range(len(disks)):
             self.equality_constraint_matrix.append(equality_matrix_row)
             equality_matrix_row = shift(equality_matrix_row, len(spaces), val=0)
-
-    def _add_disk(self):
-        pass
-
-    def _add_space(self):
-        pass
 
     def _add_objective_function_coefficient(self):
         # By default the algorithm tries to minimize the solution

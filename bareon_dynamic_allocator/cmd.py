@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from pprint import pprint
+
 import sys
 
 from oslo_config import cfg
@@ -62,7 +64,7 @@ def parse_args(conf, args=None):
 
 CONF = make_config()
 parse_args(CONF)
-LOG = log.getLogger()
+LOG = log.getLogger(__name__)
 
 
 def parse_configs(conf):
@@ -73,7 +75,7 @@ def parse_configs(conf):
 
 
 def save_result(data, output_file):
-    print data
+    pprint(data)
 
 
 def validate_schema(schema):
