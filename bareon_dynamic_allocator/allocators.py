@@ -124,17 +124,20 @@ class DynamicAllocationLinearProgram(object):
         return self._convert_solution(solution)
 
     def _convert_solution(self, solution):
-        result = {}
+        result = []
 
         spaces_grouped_by_disk = list(grouper(solution.x, len(self.spaces)))
         for disk_i in range(len(self.disks)):
             disk_id = self.disks[disk_i].id
-            result.setdefault(disk_id, [])
+            disk = {'disk_id': disk_id, 'spaces': []}
             spaces_for_disk = spaces_grouped_by_disk[disk_i]
+
             for space_i, space_size in enumerate(spaces_for_disk):
-                result[disk_id].append({
+                disk['spaces'].append({
                     'space_id': self.spaces[space_i].id,
                     'size': space_size})
+
+            result.append(disk)
 
         return result
 
