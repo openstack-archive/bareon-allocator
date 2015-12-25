@@ -12,3 +12,10 @@ disks:
     type: hdd
     vendor: Samsung
     size: 40
+
+  - id: /dev/disk/by-id/id-for-sdc
+    path: /dev/disk/by-path/path-for-sdc
+    dev: /dev/sdc
+    type: sdd
+    vendor: Samsung
+    size: 40

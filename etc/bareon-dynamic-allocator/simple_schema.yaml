@@ -8,20 +8,52 @@
 
 - id: test
   type: lv
-  min_size: 32
-  max_size: 32
+  min_size: 0
+  # max_size: 30
   mount: /test
   fs_type: ext4
-  weight: 1
+  weight: 0.2
 
 - id: swap
   type: lv
-  min_size: 5
-  max_size: 5
+  min_size: 0
+  # max_size: 5
   fs_type: swap
+  weight: 0.5
 
 - id: partition
   type: partition
   min_size: 0
   fs_type: ext4
   mount: /var/www
+  weight: 0.5
+#############
+
+# - id: root2
+#   type: lv
+#   min_size: 10
+#   mount: /
+#   fs_type: ext4
+#   weight: 1
+
+# - id: test2
+#   type: lv
+#   min_size: 30
+#   mount: /test
+#   fs_type: ext4
+#   weight: 1
+
+# - id: swap2
+#   # A single partition
+#   type: partition
+#   min_size: 5
+#   max_size: 5
+#   fs_type: swap
+
+# - id: swap2
+#   # A set of partitions allocated
+#   # over several disks
+#   type: partitions
+#   min_size: 5
+#   max_size: 5
+#   fs_type: swap
