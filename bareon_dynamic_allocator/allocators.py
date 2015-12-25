@@ -26,6 +26,9 @@ from oslo_log import log
 LOG = log.getLogger(__name__)
 
 
+def format_x_vector(coefficients):
+    return ' + '.join(['({0:+} * x{1})'.format(c, i) for i, c in enumerate(coefficients)])
+
 def shift(arr, steps, val=0):
     res_arr = np.roll(arr, steps)
     np.put(res_arr, range(steps), val)
@@ -120,11 +123,14 @@ class DynamicAllocationLinearProgram(object):
         self.x_amount = len(self.disks) * len(self.spaces)
 
         self._init_equation(self.disks, self.spaces)
+        self._init_objective_function_coefficient()
         self._init_min_max()
 
     def solve(self):
         upper_bound_matrix = self._make_upper_bound_constraint_matrix() or None
         upper_bound_vector = self._make_upper_bound_constraint_vector() or None
+
+        LOG.debug('Objective function coefficients human-readable: %s', format_x_vector(self.objective_function_coefficients))
 
         solution = linprog(
             self.objective_function_coefficients,
@@ -138,7 +144,6 @@ class DynamicAllocationLinearProgram(object):
         LOG.debug("Solution: %s", solution)
 
         return self._convert_solution(solution)
-
 
     def _init_min_max(self):
         for space_idx, space in enumerate(self.spaces):
@@ -211,11 +216,7 @@ class DynamicAllocationLinearProgram(object):
         #  0, - x4 multiplier, size of space 2 on 2nd disk, 0 for the first
         #  0, - x5 multiplier, size of space 1 on 3rd disk, 0 for the first
         #  0] - x6 multiplier, size of space 2 on 3rd disk, 0 for the first
-
         equality_matrix_row = self._make_matrix_row()
-
-        # Amount of coefficients is equal to amount of columns in the matrix
-        self._init_objective_function_coefficient(len(spaces) * len(disks))
 
         # Set first len(spaces) elements to 1
         equality_matrix_row = shift(equality_matrix_row, len(spaces), val=1)
@@ -228,16 +229,27 @@ class DynamicAllocationLinearProgram(object):
         for _ in range(self.x_amount):
             self._add_bound(0, None)
 
-    def _add_objective_function_coefficient(self):
-        # By default the algorithm tries to minimize the solution
-        # we should invert sign, in order to make it as a maximization
-        # function, we want disks to be maximally allocated.
-        # Coefficient for space per disk is 1, because all spaces
-        # are equal and should not be adjusted.
-        self.objective_function_coefficients.append(-1)
+    def _init_objective_function_coefficient(self):
+        # Amount of coefficients is equal to amount of x
+        c_amount = self.x_amount
 
-    def _init_objective_function_coefficient(self, size):
-        self.objective_function_coefficients = [-1] * size
+        coefficients = [1 for _ in range(c_amount)]
+
+        # We want spaces to be allocated on disks
+        # in order which user specified them in the schema.
+        # In order to do that, we set coefficients
+        # higher for those spaces which defined earlier
+        # in the list
+        for s_i in range(len(self.spaces)):
+            for d_i in range(len(self.disks)):
+                c_i = len(self.spaces) * d_i + s_i
+
+                coefficients[c_i] = (len(self.spaces) - s_i) * (len(self.disks) - d_i)
+
+        # By default the algorithm tries to minimize the solution
+        # we should invert sign, in order to make it a maximization
+        # function, because we want disks to be maximally allocated.
+        self.objective_function_coefficients = [-c for c in coefficients]
 
     def _add_bound(self, min_, max_):
         np.append(self.bounds, (min_, max_))

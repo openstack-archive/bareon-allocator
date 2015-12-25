@@ -28,7 +28,8 @@ class StdoutViewer(object):
 
 class SVGViewer(object):
 
-    PALETTE = ['#666547', '#fb2e01', '#6fcb9f', '#ffe28a', '#fffeb3']
+    PALETTE = ['#666547', '#fb2e01', '#6fcb9f', '#ffe28a', '#b9feb3',
+               '#404040', '#4cc3d9', '#7bc8a4', '#ffc65d', '#f16745']
     DISK_HEIGHT = 3 * cm
     SPACE_HEIGHT = 3 * cm
     WIDTH_MULTIPLIER = 10
