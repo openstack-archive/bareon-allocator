@@ -17,3 +17,12 @@ Features
 --------
 
 * TODO
+
+Future Improvments
+------------------
+
+* user weight if max is not specified
+* if min and max for several spaces are the same, consider using weight
+* create special types, like lv_mirror with special policy to allocate volume
+  of the same size over several disks
+* research on YAQL in order to filter the disks by some criteria
