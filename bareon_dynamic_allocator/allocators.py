@@ -219,15 +219,19 @@ class DynamicAllocationLinearProgram(object):
                 self.upper_bound_constraint_vector.append(max_size)
 
     def _init_weight(self):
-        """Create min and max constraints for each space.
+        """Create weight constraints for spaces which have same
+        max constraint or for those which don't have it at all.
 
-        In case of 2 disks and 2 spaces
+        * take first space which can be used in order to calculate weight.
+        * create an equation first + N / weight = 0 using weight
 
-        For first space min_size >= 10 and max_size <= 20
-        1 * x1 + 0 * x2 + 1 * x3 + 0 * x4 >= 10
-        1 * x1 + 0 * x2 + 1 * x3 + 0 * x4 <= 20
+        Lets say, second's space is equal to max of the third and fourth,
+        we will have next equation:
+        0 * x1 + (1 / weight) * x2 + (-1 / weight) * x3 +
+        0 * x4 + (1 / weight) * x5 + (-1 / weight) * x6 = 0
         """
         idx_first_with_weight = None
+        first_weight = None
         for space_idx, space in enumerate(self.spaces[1:]):
             row = self._make_matrix_row()
             weight = getattr(space, 'weight', 1)
@@ -238,12 +242,12 @@ class DynamicAllocationLinearProgram(object):
             if max_size != max_size_next or max_size is not None:
                 continue
 
-            if idx_first_with_weight is None:
+            if idx_first_with_weight is None or first_weight is None:
                 idx_first_with_weight = space_idx
+                first_weight = getattr(self.spaces[space_idx], 'weight', 1)
 
             for disk_idx in range(len(self.disks)):
-                # row[disk_idx * len(self.spaces) + space_idx] = 1
-                row[disk_idx * len(self.spaces) + idx_first_with_weight] = 1
+                row[disk_idx * len(self.spaces) + idx_first_with_weight] = 1 / first_weight
                 row[disk_idx * len(self.spaces) + space_idx + 1] = -1 / weight
 
 
