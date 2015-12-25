@@ -18,6 +18,8 @@ import six
 from scipy.optimize import linprog
 from scipy.ndimage.interpolation import shift
 
+from termcolor import colored
+
 import numpy as np
 
 from oslo_log import log
@@ -25,9 +27,6 @@ from oslo_log import log
 
 LOG = log.getLogger(__name__)
 
-
-def format_x_vector(coefficients):
-    return ' + '.join(['({0:+} * x{1})'.format(c, i) for i, c in enumerate(coefficients)])
 
 def shift(arr, steps, val=0):
     res_arr = np.roll(arr, steps)
@@ -42,6 +41,39 @@ def grouper(iterable, n, fillvalue=None):
     """
     args = [iter(iterable)] * n
     return itertools.izip_longest(fillvalue=fillvalue, *args)
+
+
+def format_x_vector(coefficients, num=0):
+    return '\n' + '\n'.join(
+        [' + '.join(group)
+         for group in grouper(
+                 ['({0:+} * x{1})'.format(c, i)
+                  for i, c in enumerate(coefficients)], num)]) + '\n'
+
+
+def format_equation(matrix, vector, row_len):
+    equation = []
+
+    for idx, m_row in enumerate(matrix):
+        line = []
+
+        for i, c in enumerate(m_row):
+            x = '({0:+} * x{1})'.format(c, i)
+            if c > 0:
+                colored_x = colored(x, 'green')
+            elif c < 0:
+                colored_x = colored(x, 'red')
+            else:
+                colored_x = colored(x, 'white')
+
+            line.append(colored_x)
+
+        line = ' + '.join(line) + ' = {0}'.format(vector[idx])
+
+        equation.append(line)
+
+    return '\n'.join(equation)
+
 
 
 class Disk(object):
@@ -125,12 +157,24 @@ class DynamicAllocationLinearProgram(object):
         self._init_equation(self.disks, self.spaces)
         self._init_objective_function_coefficient()
         self._init_min_max()
+        self._init_weight()
 
     def solve(self):
         upper_bound_matrix = self._make_upper_bound_constraint_matrix() or None
         upper_bound_vector = self._make_upper_bound_constraint_vector() or None
 
-        LOG.debug('Objective function coefficients human-readable: %s', format_x_vector(self.objective_function_coefficients))
+        LOG.debug('Objective function coefficients human-readable:\n%s\n', format_x_vector(self.objective_function_coefficients, len(self.spaces)))
+
+        LOG.debug('Equality equation:\n%s\n',
+                  format_equation(
+                      self.equality_constraint_matrix,
+                      self.equality_constraint_vector,
+                      len(self.spaces)))
+        LOG.debug('Inequality equation:\n%s\n',
+                  format_equation(
+                      upper_bound_matrix,
+                      upper_bound_vector,
+                      len(self.spaces)))
 
         solution = linprog(
             self.objective_function_coefficients,
@@ -146,6 +190,18 @@ class DynamicAllocationLinearProgram(object):
         return self._convert_solution(solution)
 
     def _init_min_max(self):
+        """Create min and max constraints for each space.
+
+        In case of 2 disks and 2 spaces
+
+        For first space min_size >= 10 and max_size <= 20
+        1 * x1 + 0 * x2 + 1 * x3 + 0 * x4 >= 10
+        1 * x1 + 0 * x2 + 1 * x3 + 0 * x4 <= 20
+
+        For second space min_size >= 15 and max_size <= 30
+        0 * x1 + 1 * x2 + 0 * x3 + 1 * x4 >= 15
+        0 * x1 + 1 * x2 + 0 * x3 + 1 * x4 <= 30
+        """
         for space_idx, space in enumerate(self.spaces):
             row = self._make_matrix_row()
             max_size = getattr(space, 'max_size', None)
@@ -162,12 +218,44 @@ class DynamicAllocationLinearProgram(object):
                 self.upper_bound_constraint_matrix.append(row)
                 self.upper_bound_constraint_vector.append(max_size)
 
+    def _init_weight(self):
+        """Create min and max constraints for each space.
+
+        In case of 2 disks and 2 spaces
+
+        For first space min_size >= 10 and max_size <= 20
+        1 * x1 + 0 * x2 + 1 * x3 + 0 * x4 >= 10
+        1 * x1 + 0 * x2 + 1 * x3 + 0 * x4 <= 20
+        """
+        idx_first_with_weight = None
+        for space_idx, space in enumerate(self.spaces[1:]):
+            row = self._make_matrix_row()
+            weight = getattr(space, 'weight', 1)
+
+            max_size = getattr(self.spaces[space_idx], 'max_size', None)
+            max_size_next = getattr(self.spaces[space_idx + 1], 'max_size', None)
+
+            if max_size != max_size_next or max_size is not None:
+                continue
+
+            if idx_first_with_weight is None:
+                idx_first_with_weight = space_idx
+
+            for disk_idx in range(len(self.disks)):
+                # row[disk_idx * len(self.spaces) + space_idx] = 1
+                row[disk_idx * len(self.spaces) + idx_first_with_weight] = 1
+                row[disk_idx * len(self.spaces) + space_idx + 1] = -1 / weight
+
+
+            self.equality_constraint_matrix.append(row)
+            self.equality_constraint_vector = np.append(self.equality_constraint_vector, 0)
+
     def _make_matrix_row(self):
         return np.zeros(self.x_amount)
 
     def _make_upper_bound_constraint_matrix(self):
         """Upper bound constraint matrix consist of upper bound
-        matrix and lower bound matrix wich changed sign
+        matrix and lower bound matrix witch changed sign
         """
         return (self.upper_bound_constraint_matrix +
                 [[-i for i in row] for row in self.lower_bound_constraint_matrix])
