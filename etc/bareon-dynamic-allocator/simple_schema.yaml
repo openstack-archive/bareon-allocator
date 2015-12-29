@@ -8,12 +8,14 @@
 - id: swap
   type: lv
   # Calc swap size according to RAM.
+  #
   # | RAM          | Recommended swap space      |
   # |--------------+-----------------------------|
   # | <= 2GB       | 2 times the amount of RAM   |
   # | > 2GB – 8GB  | Equal to the amount of RAM  |
   # | > 8GB – 64GB | 0.5 times the amount of RAM |
   # | > 64GB       | 4GB of swap space           |
+  #
   # Source https://access.redhat.com/site/documentation/en-US/
   #                Red_Hat_Enterprise_Linux/6/html/Installation_Guide/
   #                s2-diskpartrecommend-ppc.html#id4394007
