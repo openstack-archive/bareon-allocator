@@ -12,3 +12,4 @@ scipy
 numpy
 svgwrite
 termcolor
+yaql
