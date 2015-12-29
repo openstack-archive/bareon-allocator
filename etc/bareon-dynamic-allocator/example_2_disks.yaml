@@ -1,10 +1,11 @@
+ram: 2
 disks:
   - id: /dev/disk/by-id/id-for-sda
     path: /dev/disk/by-path/path-for-sda
     dev: /dev/sda
     type: hdd
     vendor: Hitachi
-    size: 30
+    size: 40
 
   - id: /dev/disk/by-id/id-for-sdb
     path: /dev/disk/by-path/path-for-sdb
@@ -16,6 +17,6 @@ disks:
   - id: /dev/disk/by-id/id-for-sdc
     path: /dev/disk/by-path/path-for-sdc
     dev: /dev/sdc
-    type: sdd
+    type: ssd
     vendor: Samsung
     size: 40

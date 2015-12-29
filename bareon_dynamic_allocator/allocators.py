@@ -13,16 +13,15 @@
 #    under the License.
 
 import itertools
-import six
 
+import six
+import numpy as np
+from termcolor import colored
+from oslo_log import log
 from scipy.optimize import linprog
 from scipy.ndimage.interpolation import shift
 
-from termcolor import colored
-
-import numpy as np
-
-from oslo_log import log
+from bareon_dynamic_allocator.parser import Parser
 
 
 LOG = log.getLogger(__name__)
@@ -89,20 +88,33 @@ class Space(object):
         for k, v in six.iteritems(kwargs):
             setattr(self, k, v)
 
+        # If no min_size specified set it to 0
+        if not kwargs.get('min_size'):
+            self.min_size = 0
+
+        # Exact size can be repreneted as min_size and max_size
+        if kwargs.get('size'):
+            self.min_size = kwargs.get('size')
+            self.max_size = kwargs.get('size')
+
 
 class DynamicAllocator(object):
 
     def __init__(self, hw_info, schema):
+        LOG.debug('Hardware information: \n%s', hw_info)
+        LOG.debug('Spaces schema: \n%s', schema)
         self.disks = [Disk(**disk) for disk in  hw_info['disks']]
-        self.spaces = [Space(**space) for space in schema]
+        rendered_spaces = Parser(schema, hw_info).parse()
+        LOG.debug('Rendered spaces schema: \n%s', rendered_spaces)
+        self.spaces = [Space(**space) for space in rendered_spaces]
 
         # Add fake volume Unallocated, in order to be able
         # to have only volumes with minimal size, without
         # additional space allocation
-        self.lp = DynamicAllocationLinearProgram(self.disks, self.spaces)
+        self.solver = DynamicAllocationLinearProgram(self.disks, self.spaces)
 
     def generate_static(self):
-        sizes = self.lp.solve()
+        sizes = self.solver.solve()
 
         return sizes
 

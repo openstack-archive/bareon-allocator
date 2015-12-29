@@ -4,56 +4,42 @@
   max_size: 20
   mount: /
   fs_type: ext4
-  weight: 1
+
+- id: swap
+  type: lv
+  # Calc swap size according to RAM.
+  # | RAM          | Recommended swap space      |
+  # |--------------+-----------------------------|
+  # | <= 2GB       | 2 times the amount of RAM   |
+  # | > 2GB – 8GB  | Equal to the amount of RAM  |
+  # | > 8GB – 64GB | 0.5 times the amount of RAM |
+  # | > 64GB       | 4GB of swap space           |
+  # Source https://access.redhat.com/site/documentation/en-US/
+  #                Red_Hat_Enterprise_Linux/6/html/Installation_Guide/
+  #                s2-diskpartrecommend-ppc.html#id4394007
+  size: |
+    yaql=let(ram => $.get(ram, 1024)) ->
+    selectCase(
+      $ram <= 2048,
+      $ram > 2048 and $ram < 8192,
+      $ram > 8192 and $ram < 65536).
+    switchCase(
+      $ram * 2,
+      $ram,
+      $ram / 2,
+      4096)
+  fs_type: swap
 
 - id: test
   type: lv
   min_size: 0
-  # max_size: 30
   mount: /test
   fs_type: ext4
-  weight: 0.2
-
-- id: swap
-  type: lv
-  min_size: 0
-  # max_size: 5
-  fs_type: swap
-  weight: 0.5
+  best_with_disks: |
+    yaql=$.disks.where($.type = "ssd")
 
 - id: partition
   type: partition
   min_size: 0
   fs_type: ext4
   mount: /var/www
-  weight: 0.5
-#############
-
-# - id: root2
-#   type: lv
-#   min_size: 10
-#   mount: /
-#   fs_type: ext4
-#   weight: 1
-
-# - id: test2
-#   type: lv
-#   min_size: 30
-#   mount: /test
-#   fs_type: ext4
-#   weight: 1
-
-# - id: swap2
-#   # A single partition
-#   type: partition
-#   min_size: 5
-#   max_size: 5
-#   fs_type: swap
-
-# - id: swap2
-#   # A set of partitions allocated
-#   # over several disks
-#   type: partitions
-#   min_size: 5
-#   max_size: 5
-#   fs_type: swap
