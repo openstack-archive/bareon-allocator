@@ -24,6 +24,7 @@ extensions = [
     'sphinx.ext.autodoc',
     #'sphinx.ext.intersphinx',
     # 'oslosphinx'
+    'sphinx.ext.mathjax'
 ]
 
 # Don't use default openstack theme, for readthedocs
