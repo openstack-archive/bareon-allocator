@@ -441,12 +441,13 @@ class DynamicAllocationLinearProgram(object):
                 # If there is best with disks, coefficients should be
                 # specified for those disks only
                 coefficient_for_disk = (len(self.spaces) - s_i) * (len(self.disks) - d_i)
+
                 if space.best_with_disks:
+                    # Set "order" coefficient only if disk is in best_with_disks list
                     if d_i in space.best_with_disks:
                         coefficients[c_i] = coefficient_for_disk
                 else:
-                    # Don't consider allocation to other disks
-                    coefficients[c_i] = 0
+                    coefficients[c_i] = coefficient_for_disk
 
         # By default the algorithm tries to minimize the solution
         # we should invert sign, in order to make it a maximization
@@ -458,7 +459,7 @@ class DynamicAllocationLinearProgram(object):
         in order to make allocation more "attractive" for
         specific x which is best suited for disk.
         """
-        BEST_WITH_DISK_COEFFICIENT = 42
+        BEST_WITH_DISK_COEFFICIENT = 2
         for s_i, space in enumerate(self.spaces):
             if space.best_with_disks:
                 for d_i in space.best_with_disks:
