@@ -13,6 +13,7 @@
 #    under the License.
 
 import itertools
+import math
 
 import six
 import numpy as np
@@ -21,6 +22,7 @@ from oslo_log import log
 from scipy.optimize import linprog
 from scipy.ndimage.interpolation import shift
 
+from bareon_dynamic_allocator import errors
 from bareon_dynamic_allocator.parser import Parser
 
 
@@ -97,16 +99,34 @@ class Space(object):
             self.min_size = kwargs.get('size')
             self.max_size = kwargs.get('size')
 
+        if not kwargs.get('best_with_disks'):
+            self.best_with_disks = set([])
+
+    def __repr__(self):
+        return str(self.__dict__)
+
 
 class DynamicAllocator(object):
 
     def __init__(self, hw_info, schema):
         LOG.debug('Hardware information: \n%s', hw_info)
         LOG.debug('Spaces schema: \n%s', schema)
-        self.disks = [Disk(**disk) for disk in  hw_info['disks']]
-        rendered_spaces = Parser(schema, hw_info).parse()
+        self.hw_info = hw_info
+        self.raw_disks = hw_info['disks']
+        self.disks = [Disk(**disk) for disk in self.raw_disks]
+        rendered_spaces = self.convert_disks_to_indexes(
+            Parser(schema, hw_info).parse(),
+            hw_info)
         LOG.debug('Rendered spaces schema: \n%s', rendered_spaces)
         self.spaces = [Space(**space) for space in rendered_spaces]
+
+        # Unallocated is required in order to be able to specify
+        # spaces with only minimal
+        self.spaces.append(Space(
+            id='unallocated',
+            type='unallocated',
+            none_order=True,
+            weight=0))
 
         # Add fake volume Unallocated, in order to be able
         # to have only volumes with minimal size, without
@@ -117,6 +137,20 @@ class DynamicAllocator(object):
         sizes = self.solver.solve()
 
         return sizes
+
+    def convert_disks_to_indexes(self, spaces, hw_info):
+        """Convert disks which are specified in `best_with_disks`
+        to a list of indexes in `disks` list.
+        """
+        for i, space in enumerate(spaces):
+            if space.get('best_with_disks'):
+                disks_idx = set()
+                for disk in space['best_with_disks']:
+                    disks_idx.add(self.raw_disks.index(disk))
+
+                spaces[i]['best_with_disks'] = disks_idx
+
+        return spaces
 
 
 class DynamicAllocationLinearProgram(object):
@@ -132,6 +166,11 @@ class DynamicAllocationLinearProgram(object):
                              /scipy.optimize.linprog.html
     [2] https://en.wikipedia.org/wiki/Simplex_algorithm
     """
+
+    weight_set_mapping = [
+        ['min_size', 'best_with_disks'],
+        ['max_size', 'best_with_disks'],
+        ['min_size', 'max_size', 'best_with_disks']]
 
     def __init__(self, disks, spaces):
         self.disks = disks
@@ -166,10 +205,18 @@ class DynamicAllocationLinearProgram(object):
         # disk we have len(spaces) * len(disks) sizes
         self.x_amount = len(self.disks) * len(self.spaces)
 
+        # TODO: has to be refactored
+        # Here we store indexes for bounds and equation
+        # matrix, in order to be able to change it on
+        # refresh
+        self.weight_equation_indexes = []
+
+        self._set_spaces_sets_by(self.weight_set_mapping[0])
         self._init_equation(self.disks, self.spaces)
         self._init_objective_function_coefficient()
         self._init_min_max()
-        self._init_weight()
+        self._refresh_weight()
+        self._init_best_with_disks()
 
     def solve(self):
         upper_bound_matrix = self._make_upper_bound_constraint_matrix() or None
@@ -188,18 +235,45 @@ class DynamicAllocationLinearProgram(object):
                       upper_bound_vector,
                       len(self.spaces)))
 
-        solution = linprog(
-            self.objective_function_coefficients,
-            A_eq=self.equality_constraint_matrix,
-            b_eq=self.equality_constraint_vector,
-            A_ub=upper_bound_matrix,
-            b_ub=upper_bound_vector,
-            bounds=self.bounds,
-            options={"disp": False})
+        for weight_for_sets in self.weight_set_mapping:
+            LOG.debug('Parameters for spaces set formation: %s', weight_for_sets)
+            self._set_spaces_sets_by(weight_for_sets)
+            solution = linprog(
+                self.objective_function_coefficients,
+                A_eq=self.equality_constraint_matrix,
+                b_eq=self.equality_constraint_vector,
+                A_ub=upper_bound_matrix,
+                b_ub=upper_bound_vector,
+                bounds=self.bounds,
+                options={"disp": False})
+
+            # If solution is found we can finish attempts to find
+            # the best solution
+            if not solution.success:
+                break
 
         LOG.debug("Solution: %s", solution)
+        self._check_errors(solution)
+        # Naive implementation of getting integer result
+        # from a linear programming algorithm, MIP
+        # (mixed integer programming) should be considered
+        # instead, but it may have a lot of problems (solution
+        # of such equations is NP-hard in some cases),
+        # for our practical purposes it's enough to round
+        # the number down, in this case we may get `n` megabytes
+        # unallocated, where n is len(spaces) * len(disks)
+        solution_vector = self._round_down(solution.x)
 
-        return self._convert_solution(solution)
+        return self._convert_solution(solution_vector)
+
+    def _check_errors(self, solution):
+        if not solution.success:
+            raise errors.NoSolutionFound(
+                'Allocation is not possible '
+                'with specified constraints: {0}'.format(solution.message))
+
+    def _round_down(self, vector):
+        return [int(math.floor(f)) for f in vector]
 
     def _init_min_max(self):
         """Create min and max constraints for each space.
@@ -230,41 +304,54 @@ class DynamicAllocationLinearProgram(object):
                 self.upper_bound_constraint_matrix.append(row)
                 self.upper_bound_constraint_vector.append(max_size)
 
-    def _init_weight(self):
+    def _set_spaces_sets_by(self, criteria):
+        def get_values(space):
+            return [getattr(space, c, None) for c in criteria]
+
+        grouped_spaces = itertools.groupby(sorted(self.spaces, key=get_values), key=get_values)
+
+        self.weight_spaces_sets = [list(v) for _, v in grouped_spaces]
+
+    def _refresh_weight(self):
         """Create weight constraints for spaces which have same
         max constraint or for those which don't have it at all.
-
-        * take first space which can be used in order to calculate weight.
-        * create an equation first + N / weight = 0 using weight
 
         Lets say, second's space is equal to max of the third and fourth,
         we will have next equation:
         0 * x1 + (1 / weight) * x2 + (-1 / weight) * x3 +
         0 * x4 + (1 / weight) * x5 + (-1 / weight) * x6 = 0
         """
-        idx_first_with_weight = None
-        first_weight = None
-        for space_idx, space in enumerate(self.spaces[1:]):
-            row = self._make_matrix_row()
-            weight = getattr(space, 'weight', 1)
+        DEFAULT_WEIGHT = 1
+        # Clean constraint matrix and vector from previous values
+        for idx in sorted(self.weight_equation_indexes, reverse=True):
+            del self.equality_constraint_matrix[idx]
+            del self.equality_constraint_vector[idx]
+        self.weight_equation_indexes = []
 
-            max_size = getattr(self.spaces[space_idx], 'max_size', None)
-            max_size_next = getattr(self.spaces[space_idx + 1], 'max_size', None)
-
-            if max_size != max_size_next or max_size is not None:
+        for spaces_set in self.weight_spaces_sets:
+            # Don't set weight if there is less than one space in the set
+            if len(spaces_set) < 2:
                 continue
 
-            if idx_first_with_weight is None or first_weight is None:
-                idx_first_with_weight = space_idx
-                first_weight = getattr(self.spaces[space_idx], 'weight', 1)
+            first_weight = getattr(spaces_set[0], 'weight', DEFAULT_WEIGHT)
+            for space in spaces_set[1:]:
+                row = self._make_matrix_row()
+                weight = getattr(space, 'weight', DEFAULT_WEIGHT)
 
-            for disk_idx in range(len(self.disks)):
-                row[disk_idx * len(self.spaces) + idx_first_with_weight] = 1 / first_weight
-                row[disk_idx * len(self.spaces) + space_idx + 1] = -1 / weight
+                # If weight is 0, it doesn't make sense to set for such space a weight
+                if weight == 0:
+                    continue
 
+                space_idx = self.spaces.index(space)
 
-            self.equality_constraint_matrix.append(row)
-            self.equality_constraint_vector = np.append(self.equality_constraint_vector, 0)
+                for disk_idx in range(len(self.disks)):
+                    row[disk_idx * len(self.spaces) + space_idx - 1] = 1 / first_weight
+                    row[disk_idx * len(self.spaces) + space_idx] = -1 / weight
+
+                self.weight_equation_indexes.append(len(self.equality_constraint_matrix) - 1)
+
+                self.equality_constraint_matrix.append(row)
+                self.equality_constraint_vector = np.append(self.equality_constraint_vector, 0)
 
     def _make_matrix_row(self):
         return np.zeros(self.x_amount)
@@ -283,10 +370,10 @@ class DynamicAllocationLinearProgram(object):
         return (self.upper_bound_constraint_vector +
                 [-i for i in self.lower_bound_constraint_vector])
 
-    def _convert_solution(self, solution):
+    def _convert_solution(self, solution_vector):
         result = []
 
-        spaces_grouped_by_disk = list(grouper(solution.x, len(self.spaces)))
+        spaces_grouped_by_disk = list(grouper(solution_vector, len(self.spaces)))
         for disk_i in range(len(self.disks)):
             disk_id = self.disks[disk_i].id
             disk = {'disk_id': disk_id, 'size': self.disks[disk_i].size, 'spaces': []}
@@ -344,16 +431,39 @@ class DynamicAllocationLinearProgram(object):
         # In order to do that, we set coefficients
         # higher for those spaces which defined earlier
         # in the list
-        for s_i in range(len(self.spaces)):
+        for s_i, space in enumerate(self.spaces):
+            # Don't set weight coefficient, if it's not required
+            if getattr(space, 'none_order', False):
+                continue
+
             for d_i in range(len(self.disks)):
                 c_i = len(self.spaces) * d_i + s_i
-
-                coefficients[c_i] = (len(self.spaces) - s_i) * (len(self.disks) - d_i)
+                # If there is best with disks, coefficients should be
+                # specified for those disks only
+                coefficient_for_disk = (len(self.spaces) - s_i) * (len(self.disks) - d_i)
+                if space.best_with_disks:
+                    if d_i in space.best_with_disks:
+                        coefficients[c_i] = coefficient_for_disk
+                else:
+                    # Don't consider allocation to other disks
+                    coefficients[c_i] = 0
 
         # By default the algorithm tries to minimize the solution
         # we should invert sign, in order to make it a maximization
         # function, because we want disks to be maximally allocated.
         self.objective_function_coefficients = [-c for c in coefficients]
+
+    def _init_best_with_disks(self):
+        """For space on specific disk increase coefficient
+        in order to make allocation more "attractive" for
+        specific x which is best suited for disk.
+        """
+        BEST_WITH_DISK_COEFFICIENT = 42
+        for s_i, space in enumerate(self.spaces):
+            if space.best_with_disks:
+                for d_i in space.best_with_disks:
+                    c_i = len(self.spaces) * d_i + s_i
+                    self.objective_function_coefficients[c_i] *= BEST_WITH_DISK_COEFFICIENT
 
     def _add_bound(self, min_, max_):
         np.append(self.bounds, (min_, max_))
