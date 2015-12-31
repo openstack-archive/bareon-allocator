@@ -23,8 +23,14 @@ sys.path.insert(0, os.path.abspath('../..'))
 extensions = [
     'sphinx.ext.autodoc',
     #'sphinx.ext.intersphinx',
-    'oslosphinx'
+    # 'oslosphinx'
 ]
+
+# Don't use default openstack theme, for readthedocs
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+if not on_rtd:
+    extensions.append('oslosphinx')
 
 # autodoc generation is a bit aggressive and a nuisance when doing heavy
 # text edit cycles.
