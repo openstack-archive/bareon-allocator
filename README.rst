@@ -28,4 +28,3 @@ Future Improvments
 * we should automatically add Unallocate volume with no constraints, so user can specify volumes with maximal sizes, and the rest of the space will be allocated for Unallocate
 * create special types, like lv_mirror with special policy to allocate volume of the same size over several disks
 * add integer constraints (the problem can be solved with integer programming, but it may lead to situation when there are no feasible solution, so for our practical purpose we are going to use naive implementation which is rounding of resulting vectos `x`)
-* as a user I should be able to define a single disk partition (http://math.stackexchange.com/questions/1460350/formulation-of-mutually-exclusive-condition, http://people.brunel.ac.uk/~mastjjb/jeb/or/moreip.html)
