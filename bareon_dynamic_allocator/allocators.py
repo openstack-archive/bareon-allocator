@@ -170,7 +170,11 @@ class DynamicAllocationLinearProgram(object):
     """
 
     weight_set_mapping = [
-        ['min_size', 'best_with_disks'],
+        # Don't use minimal size, in this case
+        # we will get a weight for the space which
+        # in combination with space which has max_size
+        # so there will be unallocated space
+        # ['min_size', 'best_with_disks'],
         ['max_size', 'best_with_disks'],
         ['min_size', 'max_size', 'best_with_disks']]
 
