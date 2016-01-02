@@ -218,7 +218,6 @@ class DynamicAllocationLinearProgram(object):
         self._init_objective_function_coefficient()
         self._init_min_max()
         self._refresh_weight()
-        self._init_best_with_disks()
 
     def solve(self):
         upper_bound_matrix = self._make_upper_bound_constraint_matrix() or None
