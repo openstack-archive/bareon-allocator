@@ -227,7 +227,8 @@ class DynamicAllocationLinearProgram(object):
         upper_bound_matrix = self._make_upper_bound_constraint_matrix() or None
         upper_bound_vector = self._make_upper_bound_constraint_vector() or None
 
-        LOG.debug('Objective function coefficients human-readable:\n%s\n', format_x_vector(self.objective_function_coefficients, len(self.spaces)))
+        LOG.debug('Objective function coefficients human-readable:\n%s\n',
+                  format_x_vector(self.objective_function_coefficients, len(self.spaces)))
 
         LOG.debug('Equality equation:\n%s\n',
                   format_equation(
@@ -316,7 +317,9 @@ class DynamicAllocationLinearProgram(object):
         def get_values(space):
             return [getattr(space, c, None) for c in criteria]
 
-        grouped_spaces = itertools.groupby(sorted(self.spaces, key=get_values), key=get_values)
+        grouped_spaces = itertools.groupby(
+                sorted(self.spaces, key=get_values),
+                key=get_values)
 
         return [(k, list(v)) for k, v in grouped_spaces]
 
@@ -345,6 +348,7 @@ class DynamicAllocationLinearProgram(object):
                 continue
 
             first_weight = getattr(spaces_set[0], 'weight', DEFAULT_WEIGHT)
+            first_space_idx = self.spaces.index(spaces_set[0])
             for space in spaces_set[1:]:
                 row = self._make_matrix_row()
                 weight = getattr(space, 'weight', DEFAULT_WEIGHT)
@@ -356,7 +360,7 @@ class DynamicAllocationLinearProgram(object):
                 space_idx = self.spaces.index(space)
 
                 for disk_idx in range(len(self.disks)):
-                    row[disk_idx * len(self.spaces) + space_idx - 1] = 1 / first_weight
+                    row[disk_idx * len(self.spaces) + first_space_idx] = 1 / first_weight
                     row[disk_idx * len(self.spaces) + space_idx] = -1 / weight
 
                 self.weight_equation_indexes.append(len(self.equality_constraint_matrix) - 1)
