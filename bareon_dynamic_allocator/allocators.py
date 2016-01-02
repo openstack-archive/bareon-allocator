@@ -24,6 +24,8 @@ from scipy.ndimage.interpolation import shift
 
 from bareon_dynamic_allocator import errors
 from bareon_dynamic_allocator.parser import Parser
+from bareon_dynamic_allocator.sequences import CrossSumInequalitySequence
+
 
 
 LOG = log.getLogger(__name__)
@@ -48,7 +50,7 @@ def format_x_vector(coefficients, num=0):
     return '\n' + '\n'.join(
         [' + '.join(group)
          for group in grouper(
-                 ['({0:+} * x{1})'.format(c, i)
+                 ['({0:+.5f} * x{1})'.format(c, i)
                   for i, c in enumerate(coefficients)], num)]) + '\n'
 
 
@@ -304,13 +306,19 @@ class DynamicAllocationLinearProgram(object):
                 self.upper_bound_constraint_matrix.append(row)
                 self.upper_bound_constraint_vector.append(max_size)
 
-    def _set_spaces_sets_by(self, criteria):
+    def _get_spaces_sets_by(self, criteria):
+        return [i[1] for i in self._get_sets_by(criteria)]
+
+    def _get_sets_by(self, criteria):
         def get_values(space):
             return [getattr(space, c, None) for c in criteria]
 
         grouped_spaces = itertools.groupby(sorted(self.spaces, key=get_values), key=get_values)
 
-        self.weight_spaces_sets = [list(v) for _, v in grouped_spaces]
+        return [(k, list(v)) for k, v in grouped_spaces]
+
+    def _set_spaces_sets_by(self, criteria):
+        self.weight_spaces_sets = self._get_spaces_sets_by(criteria)
 
     def _refresh_weight(self):
         """Create weight constraints for spaces which have same
@@ -424,47 +432,61 @@ class DynamicAllocationLinearProgram(object):
         # Amount of coefficients is equal to amount of x
         c_amount = self.x_amount
 
-        coefficients = [1 for _ in range(c_amount)]
-
         # We want spaces to be allocated on disks
         # in order which user specified them in the schema.
         # In order to do that, we set coefficients
         # higher for those spaces which defined earlier
         # in the list
-        for s_i, space in enumerate(self.spaces):
-            # Don't set weight coefficient, if it's not required
-            if getattr(space, 'none_order', False):
-                continue
 
-            for d_i in range(len(self.disks)):
-                c_i = len(self.spaces) * d_i + s_i
-                # If there is best with disks, coefficients should be
-                # specified for those disks only
-                coefficient_for_disk = (len(self.spaces) - s_i) * (len(self.disks) - d_i)
+        # TODO describe why we should use special sequence
+        # as order coefficients
+        coefficients = [1.0/i for i in CrossSumInequalitySequence(c_amount)]
 
-                if space.best_with_disks:
-                    # Set "order" coefficient only if disk is in best_with_disks list
-                    if d_i in space.best_with_disks:
-                        coefficients[c_i] = coefficient_for_disk
-                else:
-                    coefficients[c_i] = coefficient_for_disk
+        NONE_ORDER_COEFF = 1
+        SET_COEFF = 2
+
+        space_sets = self._get_spaces_sets_by(['best_with_disks'])
+
+        # A list of disks ids which are not selected for specific spaces
+        all_disks_ids = [i for i in range(len(self.disks))]
+        used_disks_ids = []
+        for k, space in self._get_sets_by(['best_with_disks']):
+            if k[0]:
+                used_disks_ids.extend(list(k[0]))
+
+        not_best_disks = list(set(all_disks_ids) - set(used_disks_ids))
+
+        for i_set, space_set in enumerate(space_sets):
+            for space in space_set:
+                s_i = self.spaces.index(space)
+
+                for d_i in range(len(self.disks)):
+                    c_i = len(self.spaces) * d_i + s_i
+
+                    # Set constant for none_order spaces
+                    if getattr(space, 'none_order', False):
+                        coefficients[c_i] = NONE_ORDER_COEFF
+                        continue
+
+                    coeff = SET_COEFF * (i_set + 1)
+                    if space.best_with_disks:
+                        if d_i in space.best_with_disks:
+                            coefficients[c_i] += coeff
+                        else:
+                            # If current disk is not in the set, set it to 0
+                            # TODO isn't it better to leave there order coefficient?
+                            # coefficients[c_i] = 0
+                            pass
+                    else:
+                        # Don't allcoate coefficient for the spaces
+                        # which have no best_with_disks, on best_with_disks
+                        if d_i in not_best_disks:
+                            coefficients[c_i] += coeff
 
         # By default the algorithm tries to minimize the solution
         # we should invert sign, in order to make it a maximization
         # function, because we want disks to be maximally allocated.
         self.objective_function_coefficients = [-c for c in coefficients]
-
-    def _init_best_with_disks(self):
-        """For space on specific disk increase coefficient
-        in order to make allocation more "attractive" for
-        specific x which is best suited for disk.
-        """
-        BEST_WITH_DISK_COEFFICIENT = 2
-        for s_i, space in enumerate(self.spaces):
-            if space.best_with_disks:
-                for d_i in space.best_with_disks:
-                    c_i = len(self.spaces) * d_i + s_i
-                    self.objective_function_coefficients[c_i] *= BEST_WITH_DISK_COEFFICIENT
 
     def _add_bound(self, min_, max_):
         np.append(self.bounds, (min_, max_))
