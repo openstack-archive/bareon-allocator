@@ -127,8 +127,72 @@ In order to implement an algorithm of swap size calculation we use `YAQL <https:
 Allocation solver
 -----------------
 
-Problem description
-~~~~~~~~~~~~~~~~~~~
+By the name of the chapter it can be seen that we are going to solve something.
+
+Lets try to generalize a problem of spaces allocation:
+
+* there are constraints, for example size of a space cannot be bigger than size of all disks, or size of swap space cannot be bigger or smaller than **size** of the space
+* there exists "the best allocation static schema", it's almost impossible to find what "the best" is, what we can do is to parse all constraint and find such an allocation which fits all the constraints, and at the same time uses given resources (disks) by maximum
+
+Lets consider an example with two spaces and a single disk, parameters which don't affect allocation problem were removed to reduce the amount of unnecessary information.
+
+Two space **root** and **swap**, for **swap** there is static size which is 10, for **root** the size should be at least 50.
+
+.. code-block:: yaml
+
+    - id: root
+      min_size: 50
+
+    - id: swap
+      size: 10
+
+A single ~10G disk.
+
+.. code-block:: yaml
+
+    disks:
+      - id: sda
+        size: 100
+
+Also we can describe the same problem as:
+
+.. math::
+
+    \begin{cases}
+    root + swap \le 100
+    root \gt 50
+    swap = 10
+    \end{cases}
+
+On disks with bigger sizes we can get really a lot of solutions.
+
+Lets consider two corner case solutions
+
+.. math::
+
+    \begin{cases}
+    root = 50
+    swap = 10
+    \end{cases}
+
+and
+
+.. math::
+
+    \begin{cases}
+    root = 90
+    swap = 10
+    \end{cases}
+
+Second one is better since it uses more disks resources and doesn't leave unallocated space.
+So we should find a way to describe that second one is better.
+
+It can be described with the next function.
+
+.. math::
+
+   Maximize: root + swap
+
 
 Solver description
 ~~~~~~~~~~~~~~~~~~
@@ -144,6 +208,9 @@ Minimal size
 
 Maximum size
 ~~~~~~~~~~~~
+
+Unallocated
+~~~~~~~~~~~
 
 Integer solution
 ~~~~~~~~~~~~~~~~
