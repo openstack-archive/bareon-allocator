@@ -22,6 +22,7 @@ High level architecture
 -----------------------
 
 ::
+
     +-------------------------+
     |                         |
     |  Dynamic schema parser  |
@@ -121,10 +122,10 @@ From Hardware Information example we can see that the node has 4096 megabytes of
           $ram / 2,
           4096)
 
-In order to implement an algorithm of swap size calculation we use `<YAQL https://github.com/openstack/yaql>`_, which is small but powerful enough query language. Any value of the parameter which matches to **yaql=yaql expression** will be evaluated using YAQL, execution result will be passed as is to the Solver.
+In order to implement an algorithm of swap size calculation we use `YAQL <https://github.com/openstack/yaql>`_, which is small but powerful enough query language. Any value of the parameter which matches to **yaql=yaql expression** will be evaluated using YAQL, execution result will be passed as is to the Solver.
 
-Solver
-------
+Allocation solver
+-----------------
 
 Problem description
 ~~~~~~~~~~~~~~~~~~~
