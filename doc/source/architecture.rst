@@ -248,7 +248,7 @@ Description of previous example in terms of Linear programming, is going to be p
    \end{bmatrix}\\[2ex]
 
 
-In order to solve the problem `Scipy linprog <http://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.optimize.linprog.html>`_ module is being used. It uses `Simplex algorithm<https://en.wikipedia.org/wiki/Simplex_algorithm>`_ to find the most feasible solution.
+In order to solve the problem `Scipy linprog <http://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.optimize.linprog.html>`_ module is being used. It uses `Simplex algorithm <https://en.wikipedia.org/wiki/Simplex_algorithm>`_ to find the most feasible solution.
 
 Two volumes
 ~~~~~~~~~~~
