@@ -159,8 +159,8 @@ Also we can describe the same problem as:
 .. math::
 
     \begin{cases}
-    root + swap \le 100
-    root \gt 50
+    root + swap \le 100 \\
+    root \gt 50 \\
     swap = 10
     \end{cases}
 
@@ -171,7 +171,7 @@ Lets consider two corner case solutions
 .. math::
 
     \begin{cases}
-    root = 50
+    root = 50 \\
     swap = 10
     \end{cases}
 
@@ -180,7 +180,7 @@ and
 .. math::
 
     \begin{cases}
-    root = 90
+    root = 90 \\
     swap = 10
     \end{cases}
 
