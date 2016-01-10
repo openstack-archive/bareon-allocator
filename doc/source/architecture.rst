@@ -176,9 +176,7 @@ and
 
 .. math::
 
-    \begin{cases}
     root = 90, \quad swap = 10
-    \end{cases}
 
 Second one is better since it uses more disks resources and doesn't leave unallocated space.
 So we should find a way to describe that second one is better.
@@ -303,11 +301,11 @@ Resulting system of linear inequalities.
 .. math::
 
    \begin{cases}
-    x_1 + x_2 \le 100 \\
-    x_3 + x_4 \le 200 \\
+   x_1 + x_2 \le 100 \\
+   x_3 + x_4 \le 200 \\
 
-    x_1 + x_3 \ge 50 \\
-    x_2 + x_4 = 10\\
+   x_1 + x_3 \ge 50 \\
+   x_2 + x_4 = 10\\
    \end{cases}
 
 * :math:`x_1 + x_2 \le 100` inequality for root and swap on the 1st disk
