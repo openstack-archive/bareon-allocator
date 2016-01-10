@@ -160,28 +160,24 @@ Also we can describe the same problem as:
 
     \begin{cases}
     root + swap \le 100 \\
-    root \gt 50 \\
+    root \ge 50 \\
     swap = 10
     \end{cases}
 
-On disks with bigger sizes we can get really a lot of solutions.
+On disks with bigger sizes we can get a lot of solutions.
 
 Lets consider two corner case solutions
 
 .. math::
 
-    \begin{cases}
-    root = 50 \\
-    swap = 10
-    \end{cases}
+    root = 50, \quad swap = 10
 
 and
 
 .. math::
 
     \begin{cases}
-    root = 90 \\
-    swap = 10
+    root = 90, \quad swap = 10
     \end{cases}
 
 Second one is better since it uses more disks resources and doesn't leave unallocated space.
@@ -196,6 +192,62 @@ It can be described with the next function.
 
 Solver description
 ~~~~~~~~~~~~~~~~~~
+
+The problem is described in terms of `Linear programming<https://en.wikipedia.org/wiki/Linear_programming>`_ (note that "programming" is being used in not computer-programming sense). The method is being widely used to solve optimal resources allocation problem which is exactly what we are trying to achieve during the allocation.
+
+.. math::
+
+    max\left\{cx : Ax \ge b\right\}
+
+* **cx** - is an objective function for maximization
+* **c** - a vector of coefficients for the values to be found
+* **x** - a vector of result values
+* **A** - coefficients matrix
+* **b** - a vector, when combined with a row from matrix **A** gives as a constraint
+
+Description of previous example in terms of Linear programming, is going to be pretty similar to what we did.
+
+.. math::
+
+   x_1 = root\\
+   x_2 = swap\\[2ex]
+
+   c = \begin{bmatrix}
+   c_1 & c_2
+   \end{bmatrix}^{T}\\[2ex]
+
+   x = \begin{bmatrix}
+   x_1 & x_2
+   \end{bmatrix}\\[2ex]
+
+   Ab = \begin{cases}
+    - x_1  - x_2 \ge -100 \\
+    x_1 \ge 50 \\
+    -x_2 \ge -10 \\
+    x_2 \ge 10 \\
+    x_1 \ge 0 \\
+    x_2 \ge 0
+   \end{cases}\\[2ex]
+
+   A =  \begin{bmatrix}
+   -1 & -1 \\
+   1 & 0 \\
+   0 & -1 \\
+   0 & 1 \\
+   1 & 0 \\
+   \end{bmatrix}\\[2ex]
+
+   b = \begin{bmatrix}
+   -100 \\
+   50 \\
+   -10 \\
+   10 \\
+   0 \\
+   0
+   \end{bmatrix}\\[2ex]
+
+
+In order to solve the problem `Scipy linprog <http://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.optimize.linprog.html>`_ module is being used.
 
 Two volumes
 ~~~~~~~~~~~
