@@ -193,7 +193,7 @@ It can be described with the next function.
 Solver description
 ~~~~~~~~~~~~~~~~~~
 
-The problem is described in terms of `Linear programming<https://en.wikipedia.org/wiki/Linear_programming>`_ (note that "programming" is being used in not computer-programming sense). The method is being widely used to solve optimal resources allocation problem which is exactly what we are trying to achieve during the allocation.
+The problem is described in terms of `Linear programming <https://en.wikipedia.org/wiki/Linear_programming>`_ (note that "programming" is being used in not computer-programming sense). The method is being widely used to solve optimal resources allocation problem which is exactly what we are trying to achieve during the allocation.
 
 .. math::
 
@@ -217,7 +217,8 @@ Description of previous example in terms of Linear programming, is going to be p
    \end{bmatrix}^{T}\\[2ex]
 
    x = \begin{bmatrix}
-   x_1 & x_2
+   x_1 \\
+   x_2
    \end{bmatrix}\\[2ex]
 
    Ab = \begin{cases}
@@ -247,7 +248,7 @@ Description of previous example in terms of Linear programming, is going to be p
    \end{bmatrix}\\[2ex]
 
 
-In order to solve the problem `Scipy linprog <http://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.optimize.linprog.html>`_ module is being used.
+In order to solve the problem `Scipy linprog <http://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.optimize.linprog.html>`_ module is being used. It uses `Simplex algorithm<https://en.wikipedia.org/wiki/Simplex_algorithm>`_ to find the most feasible solution.
 
 Two volumes
 ~~~~~~~~~~~
