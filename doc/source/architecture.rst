@@ -268,23 +268,60 @@ In order to solve the problem `Scipy linprog <http://docs.scipy.org/doc/scipy-0.
 
 So what allocator does is builds a matrix and couple of vectors and using Simplex algorithm gets the result.
 
-Two volumes
-~~~~~~~~~~~
-
 Two disks
 ~~~~~~~~~
 
-Minimal size
-~~~~~~~~~~~~
+If we have two spaces and two disks variable we will have 4 unkown variables:
 
-Maximum size
-~~~~~~~~~~~~
+#. 1st space, 1st disk size
+#. 2st space, 1st disk size
+#. 1st space, 2st disk size
+#. 2st space, 2st disk size
+
+Spaces definition which was used previously.
+
+.. code-block:: yaml
+
+    - id: root
+      min_size: 50
+
+    - id: swap
+      size: 10
+
+And two disks.
+
+.. code-block:: yaml
+
+    disks:
+      - id: sda
+        size: 100
+      - id: sdb
+        size: 200
+
+Resulting system of linear inequalities.
+
+.. math::
+
+   \begin{cases}
+    x_1 + x_2 \le 100 \\
+    x_3 + x_4 \le 200 \\
+
+    x_1 + x_3 \ge 50 \\
+    x_2 + x_4 = 10\\
+   \end{cases}
+
+* :math:`x_1 + x_2 \le 100` inequality for root and swap on the 1st disk
+* :math:`x_3 + x_4 \le 200` inequality for root and swap on the 2nd disk
+* :math:`x_1 + x_3 \ge 50` inequality for root space
+* :math:`x_2 + x_4 = 10` equality for swap space
 
 Unallocated
 ~~~~~~~~~~~
 
 Integer solution
 ~~~~~~~~~~~~~~~~
+
+Mixed integer programming
 
 Ordering
 ~~~~~~~~
@@ -294,9 +331,3 @@ Weight
 
 Best with disks
 ~~~~~~~~~~~~~~~
-
-Advanced ordering
-~~~~~~~~~~~~~~~~~
-Describe sequence
-
-
