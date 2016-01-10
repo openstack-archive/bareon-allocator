@@ -215,7 +215,7 @@ Coefficients for objective function.
 .. math::
 
    c = \begin{bmatrix}
-   c_1 & c_2
+   1 & 1
    \end{bmatrix}^{T}\\[2ex]
 
 A vector of values to be found, i.e. sizes of spaces.
@@ -332,8 +332,184 @@ to be used.
 Ordering
 ~~~~~~~~
 
+It would be really nice to have the volumes allocated on the disks in the order which
+was specified by the user.
+
+Lets consider two spaces example.
+
+.. code-block:: yaml
+
+    - id: root
+      size: 100
+
+    - id: var
+      size: 100
+
+With two disks.
+
+.. code-block:: yaml
+
+    disks:
+      - id: sda
+        size: 100
+      - id: sdb
+        size: 100
+
+Which can be represented as next inequality.
+
+.. math::
+
+    \begin{cases}
+    x_1 + x_2 \le 100 \\
+    x_3 + x_4 \le 200 \\
+    x_1 + x_3 = 100 \\
+    x_2 + x_4 = 100
+    \end{cases}
+
+And objective function.
+
+.. math::
+
+   Maximize: x_1 + x_2
+
+
+So we may have two solutions here:
+
+#. var for 1st disk, root for 2nd
+#. root for 1st disk, var for 2nd
+
+Objective function is being used by the algorithm to decide, which solution
+"better". Currently all elements in coefficients vector are equal to 1
+
+.. math::
+   c = \begin{bmatrix}
+   1 &
+   1 &
+   1 &
+   1
+   \end{bmatrix}^{T}`.
+
+We can change coefficients in a way that first volume has higher coefficient than the last one.
+
+.. math::
+
+   c = \begin{bmatrix}
+   4 &
+   3 &
+   2 &
+   1
+   \end{bmatrix}^{T}\\[2ex]
+
+Now Linear Pgroamming solver will try to maximize the solution with respect to specified order of spaces.
+
 Weight
 ~~~~~~
 
+Two spaces, no exact size specified.
+
+.. code-block:: yaml
+
+    - id: root
+      size: 10
+
+    - id: var
+      size: 10
+
+A single disk.
+
+.. code-block:: yaml
+
+    disks:
+      - id: sda
+        size: 100
+
+According to coefficients of objective funciton with respect to ordering we will have the next allocation.
+
+* **root** - 90
+* **var** - 10
+
+Which is not so obvious result for the user, the expected result would be to have the next allocation.
+
+* **root** - 50
+* **var** - 50
+
+So for those spaces, which have the same **min_size**, **max_size** (and **best_with_disks** see next section),
+allocator adds special equality to make sure that there is a fair allocation between spaces with same requirements.
+
+Each space can have **weight** variable specified (**1** by default), which is used to make additional equality.
+
+.. math::
+
+    \begin{cases}
+    x_1 + x_2 \le 100 \\
+    x_3 + x_4 \le 200 \\
+    x_1 + x_3 = 100 \\
+    x_2 + x_4 = 100
+    x_2 * (1 / weight) + x_4 * (-1 / weight) = 0
+    \end{cases}
+
+To satisfy last equality, spaces have to be equal in size.
+If it's required to have one space twice smaller than other one, it can be done by setting the weight variable.
+
+
+.. code-block:: yaml
+
+    - id: root
+      size: 10
+      weight: 1
+
+    - id: var
+      size: 10
+      weight: 0.5
+
+As result for **var** will be allocated twice smaller space on the disk.
+
 Best with disks
 ~~~~~~~~~~~~~~~
+
+User may want a space to be allocated on specific disk according to any attribute of a disk.
+
+For example lets consider an example with **ceph-journal** which is better to allocate on **ssd** disks.
+
+From user's perspective each space can have a new parameter **best_with_disks**, in order to fill in this parameter `YAQL <https://github.com/openstack/yaql>`_ can be used.
+
+.. code-block:: yaml
+
+    - id: ceph-journal
+      best_with_disks: |
+        yaql=$.disks.where($.type = "ssd")
+
+    - id: root
+      min_size: 10
+
+.. code-block:: yaml
+
+    disks:
+      - id: sda
+        size: 100
+        type: hdd
+
+      - id: sdb
+        size: 10
+        type: ssd
+
+
+So in solver we get a list of **ssd** disks, if there are any.
+
+Lets adjust coefficients to make ceph-journal to be allocated on ssd, as a second priority ordering should be respected.
+
+In order to do that lets make order coefficient :math:`0 < order_coefficient < 1`.
+
+.. math::
+
+   c = \begin{bmatrix}
+   1 + (1/5) &
+   0 + (1/4) &
+   0 + (1/3) &
+   1 + (1/2)
+   \end{bmatrix}^{T}\\[2ex]
+
+
+Advacned ordering
+~~~~~~~~~~~~~~~~~
+
