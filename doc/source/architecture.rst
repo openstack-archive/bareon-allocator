@@ -212,16 +212,28 @@ Description of previous example in terms of Linear programming, is going to be p
    x_1 = root\\
    x_2 = swap\\[2ex]
 
+Coefficients for objective function.
+
+.. math::
+
    c = \begin{bmatrix}
    c_1 & c_2
    \end{bmatrix}^{T}\\[2ex]
+
+A vector of values to be found, i.e. sizes of spaces.
+
+.. math::
 
    x = \begin{bmatrix}
    x_1 \\
    x_2
    \end{bmatrix}\\[2ex]
 
-   Ab = \begin{cases}
+System of linear inequalities. Inequalities which are "less or equal" multiplied by -1 to make them "greater or equal".
+
+.. math::
+
+   A \ge b = \begin{cases}
     - x_1  - x_2 \ge -100 \\
     x_1 \ge 50 \\
     -x_2 \ge -10 \\
@@ -229,6 +241,10 @@ Description of previous example in terms of Linear programming, is going to be p
     x_1 \ge 0 \\
     x_2 \ge 0
    \end{cases}\\[2ex]
+
+**A** and **b** written in matrix and vector form respectively.
+
+.. math::
 
    A =  \begin{bmatrix}
    -1 & -1 \\
@@ -247,8 +263,9 @@ Description of previous example in terms of Linear programming, is going to be p
    0
    \end{bmatrix}\\[2ex]
 
-
 In order to solve the problem `Scipy linprog <http://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.optimize.linprog.html>`_ module is being used. It uses `Simplex algorithm <https://en.wikipedia.org/wiki/Simplex_algorithm>`_ to find the most feasible solution.
+
+So what allocator does is builds a matrix and couple of vectors and using Simplex algorithm gets the result.
 
 Two volumes
 ~~~~~~~~~~~
