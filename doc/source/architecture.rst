@@ -252,6 +252,7 @@ System of linear inequalities. Inequalities which are "less or equal" multiplied
    0 & -1 \\
    0 & 1 \\
    1 & 0 \\
+   0 & 1 \\
    \end{bmatrix}\\[2ex]
 
    b = \begin{bmatrix}
