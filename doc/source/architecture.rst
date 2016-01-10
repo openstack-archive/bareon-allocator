@@ -231,7 +231,7 @@ System of linear inequalities. Inequalities which are "less or equal" multiplied
 
 .. math::
 
-   A \ge b = \begin{cases}
+   Ax \ge b = \begin{cases}
     - x_1  - x_2 \ge -100 \\
     x_1 \ge 50 \\
     -x_2 \ge -10 \\
@@ -303,9 +303,8 @@ Resulting system of linear inequalities.
    \begin{cases}
    x_1 + x_2 \le 100 \\
    x_3 + x_4 \le 200 \\
-
    x_1 + x_3 \ge 50 \\
-   x_2 + x_4 = 10\\
+   x_2 + x_4 = 10
    \end{cases}
 
 * :math:`x_1 + x_2 \le 100` inequality for root and swap on the 1st disk
@@ -313,13 +312,22 @@ Resulting system of linear inequalities.
 * :math:`x_1 + x_3 \ge 50` inequality for root space
 * :math:`x_2 + x_4 = 10` equality for swap space
 
-Unallocated
-~~~~~~~~~~~
-
 Integer solution
 ~~~~~~~~~~~~~~~~
 
-Mixed integer programming
+By default result vector provides us with rational number vector solution.
+Very naive way is being used to get integer soluton, we round the number down,
+this solution may have problems because some of the constraints may be vaiolated
+with respect to one megabyte.
+Another side effect is we may get **N** megabytes unallocated in the worst case, where
+**N** is an amount of spaces.
+For our application purposes all above drawbacks are not so big, considering
+a complexity of proper solution.
+
+`Mixed integer programming <https://en.wikipedia.org/wiki/Integer_programming>`_ can
+be used to get integer result, but the problem is the problem described in terms of
+Integer programming may be NP-hard. So it should be considered carefully if it's worth
+to be used.
 
 Ordering
 ~~~~~~~~
