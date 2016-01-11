@@ -195,7 +195,7 @@ The problem is described in terms of `Linear programming <https://en.wikipedia.o
 
     max\left\{c^{T}x : Ax \ge b\right\}
 
-* **c^{T}x** - is an objective function for maximization
+* :math:`{\bf c^{T}x}` - is an objective function for maximization
 * **c** - a vector of coefficients for the values to be found
 * **x** - a vector of result values
 * **A** - coefficients matrix
