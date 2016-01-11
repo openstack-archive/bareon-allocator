@@ -523,21 +523,18 @@ And when **root** and **var** are allocated on both disks equally
 
 .. math::
 
-   $$
    cx = \begin{bmatrix}
    50 &
    50 &
    50 &
    50
    \end{bmatrix}
-
    \begin{bmatrix}
    6 \\
    4 \\
    2 \\
    1
    \end{bmatrix} =
-
    \begin{bmatrix}
    300 \\
    200 \\
@@ -547,7 +544,6 @@ And when **root** and **var** are allocated on both disks equally
 
    sum\{cx\} = 650
 
-   $$
 
 Soo :math:`700 > 650` first function has greater maximization value, that is exactly what we need.
 
