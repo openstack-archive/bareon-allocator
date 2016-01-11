@@ -35,6 +35,7 @@ class BaseSequence(object):
 class CrossSumInequalitySequence(BaseSequence):
     """An implementaion of a sequence from 1 to n
 
+    https://oeis.org/A002620
     http://math.stackexchange.com/a/1596812/301008
     """
 
@@ -43,7 +44,7 @@ class CrossSumInequalitySequence(BaseSequence):
             raise StopIteration
         else:
             self.previous = int(math.floor((self.current + 1) / 2.0) *
-                            math.floor((self.current + 2) / 2.0))
+                                math.floor((self.current + 2) / 2.0))
             self.n_current += 1
             self.current += 1
 

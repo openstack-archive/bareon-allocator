@@ -27,7 +27,6 @@ from bareon_dynamic_allocator.parser import Parser
 from bareon_dynamic_allocator.sequences import CrossSumInequalitySequence
 
 
-
 LOG = log.getLogger(__name__)
 
 
@@ -475,10 +474,9 @@ class DynamicAllocationLinearProgram(object):
                         coefficients[c_i] = NONE_ORDER_COEFF
                         continue
 
-                    coeff = SET_COEFF * (i_set + 1)
                     if space.best_with_disks:
                         if d_i in space.best_with_disks:
-                            coefficients[c_i] += coeff
+                            coefficients[c_i] += SET_COEFF
                         else:
                             # If current disk is not in the set, set it to 0
                             # TODO isn't it better to leave there order coefficient?
@@ -488,7 +486,7 @@ class DynamicAllocationLinearProgram(object):
                         # Don't allcoate coefficient for the spaces
                         # which have no best_with_disks, on best_with_disks
                         if d_i in not_best_disks:
-                            coefficients[c_i] += coeff
+                            coefficients[c_i] += SET_COEFF
 
         # By default the algorithm tries to minimize the solution
         # we should invert sign, in order to make it a maximization
