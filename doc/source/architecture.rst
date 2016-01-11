@@ -44,7 +44,7 @@ High level architecture
     +--------------------------+
 
 * **Dynamic schema parser** - parses an input from the user and prepares the data which can be consumed by Allocation solver
-* **Allocation solver** - an algorithm which takes dynamic schema and produces a static schema
+* **Allocation solver** - algorithm which takes dynamic schema and produces a static schema
 * **Solution convertor** - a result which is produced by solver, should be parsed and converted into `Bareon <https://wiki.openstack.org/wiki/Bareon>`_ consumable format, for example for `Logical Volume <https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)>`_ Solution convertor should generate a physical volume for each disk, where it's allocated
 
 Dynamic schema parser
@@ -122,7 +122,7 @@ From Hardware Information example we can see that the node has 4096 megabytes of
           $ram / 2,
           4096)
 
-In order to implement an algorithm of swap size calculation we use `YAQL <https://github.com/openstack/yaql>`_, which is small but powerful enough query language. Any value of the parameter which matches to **yaql=yaql expression** will be evaluated using YAQL, execution result will be passed as is to the Solver.
+In order to implement algorithm of swap size calculation we use `YAQL <https://github.com/openstack/yaql>`_, which is small but powerful enough query language. Any value of the parameter which matches to **yaql=yaql expression** will be evaluated using YAQL, execution result will be passed as is to the Solver.
 
 Allocation solver
 -----------------
