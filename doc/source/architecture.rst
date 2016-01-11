@@ -232,12 +232,12 @@ System of linear inequalities. Inequalities which are "less or equal" multiplied
 .. math::
 
    Ax \ge b = \begin{cases}
-    - x_1  - x_2 \ge -100 \\
-    x_1 \ge 50 \\
-    -x_2 \ge -10 \\
-    x_2 \ge 10 \\
-    x_1 \ge 0 \\
-    x_2 \ge 0
+    - x_1  - x_2 & \ge -100 \\
+    x_1 & \ge 50 \\
+    -x_2 & \ge -10 \\
+    x_2 & \ge 10 \\
+    x_1 & \ge 0 \\
+    x_2 & \ge 0
    \end{cases}\\[2ex]
 
 **A** and **b** written in matrix and vector form respectively.
@@ -463,8 +463,10 @@ Also sequence must not violate next requirements.
 
 .. math::
 
-    n_{i+1} \gt n_i \\[2ex]
-    n_{i} + n_{j+1} \gt n_{i+1} + n_{j}$ where $i+1 < j
+   \begin{align}
+   & n_{i+1} \gt n_i \\[2ex]
+   & n_{i} + n_{j+1} \gt n_{i+1} + n_{j} \hspace{0.2cm} \textrm{where} \hspace{0.2cm} i+1 < j
+   \end{align}
 
 It means that sum of ranges taken on the "lower side" of a sequence has to be always smaller than sum of range on "higher side".
 
@@ -472,9 +474,11 @@ In our example this requirement is violated
 
 .. math::
 
-   i = 1\\
-   j = 3\\
-   1 + 4 = 2 + 3
+   \begin{align}
+   & i = 1\\
+   & j = 3\\
+   & 1 + 4 = 2 + 3
+   \end{align}
 
 Such sequence has been `found <http://math.stackexchange.com/questions/1596496/finding-a-monotonically-increasing-sequence-of-integers/1596812>`_
 
@@ -637,7 +641,7 @@ So in solver we get a list of **ssd** disks, if there are any.
 
 Lets adjust coefficients to make ceph-journal to be allocated on ssd, as a second priority ordering should be respected.
 
-In order to do that lets make order coefficient :math:`0 < order coefficient < 1`.
+In order to do that lets make order coefficient :math:`0 < \textrm{order coefficient} < 1`.
 
 .. math::
 
