@@ -9,7 +9,7 @@ History
 -------
 First (and second) attempts to solve the problem has begun during development of `Fuel <https://wiki.openstack.org/wiki/Fuel>`_ project, special module `VolumeManager <https://github.com/openstack/fuel-web/blob/7.0/nailgun/nailgun/extensions/volume_manager/manager.py>`_ was created to solve the problem, it consumes `hardware information <https://github.com/openstack/fuel-web/blob/7.0/nailgun/nailgun/fixtures/sample_environment.json#L195-L232>`_ and `partitioning schema <https://github.com/openstack/fuel-web/blob/7.0/nailgun/nailgun/fixtures/openstack.yaml#L444-L577>`_, as result it generates sizes of spaces which should be allocated on the disks.
 
-Current solution has `plenty of problems <https://blueprints.launchpad.net/bareon/+spec/dynamic-allocation>`_, it's hard and expensive to solve these problems in terms of old VolumeManager, because trivial algorithms and schema format don't allow us to extend it easily, handle all of the cases combined is not a trivial task to do if we try to solve the problem using brute-force.
+Current solution has `plenty of problems <https://blueprints.launchpad.net/bareon/+spec/dynamic-allocation>`_, it's hard and expensive to solve these problems in terms of old VolumeManager, because trivial algorithms and schema format don't allow us to extend it easily, handle all complex cases is not a trivial task to do if we try to solve the problem using brute-force.
 
 List of terms
 -------------
