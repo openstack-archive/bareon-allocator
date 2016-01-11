@@ -195,11 +195,11 @@ The problem is described in terms of `Linear programming <https://en.wikipedia.o
 
     max\left\{c^{T}x : Ax \ge b\right\}
 
-* **cx** - is an objective function for maximization
+* **c^{T}x** - is an objective function for maximization
 * **c** - a vector of coefficients for the values to be found
 * **x** - a vector of result values
 * **A** - coefficients matrix
-* **b** - a vector, when combined with a row from matrix **A** gives as a constraint
+* **b** - a vector, when combined with a row from matrix **A** gives a constraint
 
 Description of previous example in terms of Linear programming, is going to be pretty similar to what we did in previous section.
 
@@ -221,7 +221,7 @@ A vector of values to be found, i.e. sizes of spaces.
 .. math::
 
    x = \begin{bmatrix}
-   x_1 &
+   x_1 \\
    x_2
    \end{bmatrix}
 
@@ -262,7 +262,7 @@ System of linear inequalities. Inequalities which are "less or equal" multiplied
 
 In order to solve the problem `Scipy linprog <http://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.optimize.linprog.html>`_ module is being used. It uses `Simplex algorithm <https://en.wikipedia.org/wiki/Simplex_algorithm>`_ to find the most feasible solution.
 
-So what allocator does is builds a matrix and couple of vectors and using Simplex algorithm gets the result.
+So what allocator does, is builds a matrix and couple of vectors and using Simplex algorithm gets the result.
 
 Two disks
 ~~~~~~~~~
@@ -370,7 +370,7 @@ And objective function.
 
 .. math::
 
-   Maximize: x_1 + x_2
+   Maximize: x_1 + x_2 + x_3 + x_4
 
 So we may have two obvious solutions here:
 
@@ -420,13 +420,12 @@ Lets consider two solutions and calculate the results of objective function.
    100
    \end{bmatrix}
    =
-   sum\{\begin{bmatrix}
+   sum\begin{bmatrix}
    400 \\
    0 \\
    0 \\
    100
    \end{bmatrix}
-   \}
    = 500
 
 The result that objective function provides is **500**, if **root** is allocated on the first disk and **var** on second one.
@@ -439,13 +438,14 @@ The result that objective function provides is **500**, if **root** is allocated
    3 &
    2 &
    1
-   \end{bmatrix} =
+   \end{bmatrix}
    \begin{bmatrix}
    50 \\
    50 \\
    50 \\
    50
    \end{bmatrix}
+   =
    sum \begin{bmatrix}
    200 \\
    150 \\
@@ -453,7 +453,6 @@ The result that objective function provides is **500**, if **root** is allocated
    50
    \end{bmatrix}
    = 500
-
 
 The result that objective function provides is **500**, if **root** and **var** are allocated equally on both disks.
 
@@ -468,9 +467,21 @@ Also sequence must not violate next requirements.
    & n_{i} + n_{j+1} \gt n_{i+1} + n_{j} \hspace{0.2cm} \textrm{where} \hspace{0.2cm} i+1 < j
    \end{align}
 
-It means that sum of ranges taken on the "lower side" of a sequence has to be always smaller than sum of range on "higher side".
+If we apply it to our example with **4** coefficients, it means that a sum of **bold** elements must not be equal.
 
-In our example this requirement is violated
+.. math::
+
+   \begin{array}{ c c }
+   {\bf c_1} & c_2 \\
+   c_3 & {\bf c_4}
+   \end{array}
+   \ne
+   \begin{array}{ c c }
+   c_1 & {\bf c_2} \\
+   {\bf c_3} & c_4
+   \end{array}
+
+In the example this requirement is violated
 
 .. math::
 
@@ -480,7 +491,7 @@ In our example this requirement is violated
    & 1 + 4 = 2 + 3
    \end{align}
 
-Such sequence has been `found <http://math.stackexchange.com/questions/1596496/finding-a-monotonically-increasing-sequence-of-integers/1596812>`_
+A sequence which doesn't not violate these requirements has been `found <http://math.stackexchange.com/questions/1596496/finding-a-monotonically-increasing-sequence-of-integers/1596812>`_
 
 .. math::
 
@@ -502,13 +513,14 @@ Lets use this sequence in our examples
    4 &
    2 &
    1
-   \end{bmatrix} =
+   \end{bmatrix}
    \begin{bmatrix}
    100 \\
    0 \\
    0 \\
    100
    \end{bmatrix}
+   =
    sum\begin{bmatrix}
    600 \\
    0 \\
@@ -527,13 +539,14 @@ And when **root** and **var** are allocated on both disks equally
    4 &
    2 &
    1
-   \end{bmatrix} =
+   \end{bmatrix}
    \begin{bmatrix}
    50 \\
    50 \\
    50 \\
    50
    \end{bmatrix}
+   =
    sum\begin{bmatrix}
    300 \\
    200 \\
@@ -543,7 +556,7 @@ And when **root** and **var** are allocated on both disks equally
    = 650
 
 
-Soo :math:`700 > 650` first function has greater maximization value, that is exactly what we need.
+So :math:`700 > 650`, first function has greater maximization value, that is exactly what we needed.
 
 Weight
 ~~~~~~
@@ -566,7 +579,7 @@ A single disk.
       - id: sda
         size: 100
 
-According to coefficients of objective funciton with respect to ordering we will have the next allocation.
+According to coefficients of objective funciton with respect to ordering, we will have the next allocation.
 
 * **root** - 90
 * **var** - 10
@@ -592,7 +605,7 @@ Each space can have **weight** variable specified (**1** by default), which is u
     \end{cases}
 
 To satisfy last equality, spaces have to be equal in size.
-If it's required to have one space twice smaller than other one, it can be done by setting the weight variable.
+If it's required to have one space twice smaller than the other one, it can be done by setting the weight variable.
 
 
 .. code-block:: yaml
@@ -656,9 +669,9 @@ In order to do that lets make order coefficient :math:`0 < \textrm{order coeffic
 #. for spaces which belong to specific set of disks add **1** to a coefficient which represents this space on a disk from the set
 #. if space does not belong to the set of disks, add **0**
 
-To make sure that spaces are always (unless size constraints are not violated), going to be allocated on the disks which they best suited with,
+To make sure that spaces are always (unless size constraints are not violated) allocated on the disks which they best suited with,
 we automatically add a special artificial volume **unallocated**, whose coefficient is always **1**, and in this case we should change
-coefficient of space which belongs to set of disks to **2**.
+coefficient of space which belongs to the set of disks to **2**.
 
 .. math::
 
@@ -671,4 +684,4 @@ coefficient of space which belongs to set of disks to **2**.
    1
    \end{bmatrix}
 
-As the result if space has one or more **best_with_disks**, it will be allocated on the disks only.
+As the result if space has one or more **best_with_disks**, it will be allocated on specified disks only.
