@@ -414,14 +414,12 @@ Lets consider two solutions and calculate the results of objective function.
    0 &
    100
    \end{bmatrix}
-
    \begin{bmatrix}
    4 \\
    3 \\
    2 \\
    1
    \end{bmatrix} =
-
    \begin{bmatrix}
    400 \\
    0 \\
@@ -441,14 +439,12 @@ The result that objective function provides is **500**, if **root** is allocated
    50 &
    50
    \end{bmatrix}
-
    \begin{bmatrix}
    4 \\
    3 \\
    2 \\
    1
    \end{bmatrix} =
-
    \begin{bmatrix}
    200 \\
    150 \\
@@ -502,14 +498,12 @@ Lets use this sequence in our examples
    0 &
    100
    \end{bmatrix}
-
    \begin{bmatrix}
    6 \\
    4 \\
    2 \\
    1
    \end{bmatrix} =
-
    \begin{bmatrix}
    600 \\
    0 \\
