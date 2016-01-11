@@ -665,9 +665,9 @@ In order to do that lets make order coefficient :math:`0 < \textrm{order coeffic
    1 + (1/9)
    \end{bmatrix}
 
-#. build sets according to selected disks, in our case we have two sets, **hdd** and **ssd** disks
-#. for spaces which belong to specific set of disks add **1** to a coefficient which represents this space on a disk from the set
-#. if space does not belong to the set of disks, add **0**
+#. Build sets according to selected disks, in our case we have two sets, **hdd** and **ssd** disks.
+#. For spaces which belong to specific set of disks add **1** to a coefficient which represents this space on a disk from the set.
+#. If space does not belong to the set of disks, add **0**.
 
 To make sure that spaces are always (unless size constraints are not violated) allocated on the disks which they best suited with,
 we automatically add a special artificial volume **unallocated**, whose coefficient is always **1**, and in this case we should change
