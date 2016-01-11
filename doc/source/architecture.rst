@@ -3,20 +3,20 @@ Architecture
 ============
 Problem description
 -------------------
-User may have a variety of bare-metal node configuration, with different amount of disks, types of disks and their sizes, there should be a way to store best practises on what is the best way to do partitioning, so they can be applied for the most configuration cases without asking the end user to manually adjust the configuration of partitioning, with posibility to do that, if user wants to.
+User may have a variety of bare-metal nodes configuration, with different amount of disks, types of disks and their sizes, there should be a way to store best practises on what is the best way to do partitioning, so they can be applied for the most configuration cases without asking the end user to manually adjust the configuration of partitioning, with posibility to do that, if user wants to.
 
 History
 -------
 First (and second) attempts to solve the problem has begun during development of `Fuel <https://wiki.openstack.org/wiki/Fuel>`_ project, special module `VolumeManager <https://github.com/openstack/fuel-web/blob/7.0/nailgun/nailgun/extensions/volume_manager/manager.py>`_ was created to solve the problem, it consumes `hardware information <https://github.com/openstack/fuel-web/blob/7.0/nailgun/nailgun/fixtures/sample_environment.json#L195-L232>`_ and `partitioning schema <https://github.com/openstack/fuel-web/blob/7.0/nailgun/nailgun/fixtures/openstack.yaml#L444-L577>`_, as result it generates sizes of spaces which should be allocated on the disks.
 
-Current solution has `plenty of problems <https://blueprints.launchpad.net/bareon/+spec/dynamic-allocation>`_, it's hard and expensive to solve this problem in terms of old VolumeManager, because trivial algorithms and schema format don't allow us to extend it easily, handle all of the cases combined is not a trivial task to do if we try to solve the problem using brute-force.
+Current solution has `plenty of problems <https://blueprints.launchpad.net/bareon/+spec/dynamic-allocation>`_, it's hard and expensive to solve these problems in terms of old VolumeManager, because trivial algorithms and schema format don't allow us to extend it easily, handle all of the cases combined is not a trivial task to do if we try to solve the problem using brute-force.
 
 List of terms
 -------------
-* **Disk** - a place where space can be allocated
-* **Space** - an entity which can be allocated on several disks at once, a good example of a space is a `logical volume <https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)>`_ for lvm, another one is partition
-* **Dynamic schema** - a schema without specific sizes, it's a schema which is used by user to specify partitioning schema without details
-* **Static schema** - a schema for `Bareon <https://wiki.openstack.org/wiki/Bareon>`_ which requires exact space <-> disk mapping with exact size of each space
+* **Disk** - a place where space can be allocated.
+* **Space** - an entity which can be allocated on several disks at once, a good example of a space is a `logical volume <https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)>`_ for lvm, another one is partition.
+* **Dynamic schema** - a schema without specific sizes, it's a schema which is used by user to specify partitioning schema without details.
+* **Static schema** - a schema for `Bareon <https://wiki.openstack.org/wiki/Bareon>`_ which requires exact space, i.e. disk mapping with exact sizes for each space.
 
 High level architecture
 -----------------------
@@ -43,24 +43,24 @@ High level architecture
     |                          |
     +--------------------------+
 
-* **Dynamic schema parser** - parses an input from the user and prepares the data which can be consumed by Allocation solver
-* **Allocation solver** - algorithm which takes dynamic schema and produces a static schema
-* **Solution convertor** - a result which is produced by solver, should be parsed and converted into `Bareon <https://wiki.openstack.org/wiki/Bareon>`_ consumable format, for example for `Logical Volume <https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)>`_ Solution convertor should generate a physical volume for each disk, where it's allocated
+* **Dynamic schema parser** - parses an input from the user and prepares the data which can be consumed by Allocation solver.
+* **Allocation solver** - algorithm which takes dynamic schema and produces a static schema.
+* **Solution convertor** - a result which is produced by solver, should be parsed and converted into `Bareon <https://wiki.openstack.org/wiki/Bareon>`_ consumable format, for example for `Logical Volume <https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)>`_ Solution convertor should generate a physical volume for each disk, where it's allocated.
 
 Dynamic schema parser
 ---------------------
 
-In the current version we user flat schema, it's a list which consists dictionaries.
+In the current version we user flat schema, it's a list which consists of dictionaries.
 
 Basic syntax
 ~~~~~~~~~~~~
 
-* **id** - id of a space
-* **type** - type of a space, for example Volume Group or Logical Volume
-* **max_size** - maximum size which is allowed for the space
-* **min_size** - minimal size which is allowed for the space
-* **size** - a static size, it's similar as to set for **min_size** and **max_size** the same value
-* **contains** - is required for hierarchical spaces such as Volume Group
+* **id** - id of a space.
+* **type** - type of a space, for example Volume Group or Logical Volume.
+* **max_size** - maximum size which is allowed for the space.
+* **min_size** - minimal size which is allowed for the space.
+* **size** - a static size, it's similar as to set for **min_size** and **max_size** the same value.
+* **contains** - is required for hierarchical spaces such as Volume Group.
 
 Also there are couple of different attributes, such as **mount**, **fs_type**, which are self-explanatory. A list of such attributes is not complete and may be easily extended in the future.
 
@@ -89,11 +89,11 @@ Dynamic parameters
 ~~~~~~~~~~~~~~~~~~
 
 What if user wants to allocate a size of space based on some different parameter?
-As an example lets consider a size of swap which has to be based on amount of RAM the node has.
+As an example lets consider a size of **swap** which has to be based on amount of RAM the node has.
 
 .. code-block:: yaml
 
-    ram: 4096
+    ram: 2048
     disks:
       - id: /dev/disk/by-id/id-for-sda
         path: /dev/disk/by-path/path-for-sda
@@ -102,13 +102,12 @@ As an example lets consider a size of swap which has to be based on amount of RA
         vendor: Hitachi
         size: 5000
 
-From Hardware Information example we can see that the node has 4096 megabytes of RAM, according to `best practises <https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Installation_Guide/s2-diskpartrecommend-ppc.html>`_ on swap size allocation swap size has to be twice bigger than current RAM.
+From Hardware Information example we can see that the node has **2048** megabytes of RAM, according to `best practises <https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Installation_Guide/s2-diskpartrecommend-ppc.html>`_ on swap size allocation swap size has to be twice bigger than current RAM.
 
 .. code-block:: yaml
 
     - id: swap
       type: lv
-      size: 2000
       fs_type: swap
       size: |
         yaql=let(ram => $.get(ram, 1024)) ->
@@ -122,21 +121,20 @@ From Hardware Information example we can see that the node has 4096 megabytes of
           $ram / 2,
           4096)
 
-In order to implement algorithm of swap size calculation we use `YAQL <https://github.com/openstack/yaql>`_, which is small but powerful enough query language. Any value of the parameter which matches to **yaql=yaql expression** will be evaluated using YAQL, execution result will be passed as is to the Solver.
+In order to implement algorithm of swap size calculation we use `YAQL <https://github.com/openstack/yaql>`_, which is a small but powerful enough query language. Any value of the parameter which matches to **yaql=yaql expression** will be evaluated using YAQL, execution result will be passed as is to the solver.
 
 Allocation solver
 -----------------
 
-By the name of the chapter it can be seen that we are going to solve something.
+Lets try to generalize the problem of spaces allocation:
 
-Lets try to generalize a problem of spaces allocation:
+* There are constraints, for example sizes of a spaces cannot be bigger than size of all disks, or size of swap space cannot be bigger or smaller than **size** of the space.
+* There exists "the best allocation static schema", it's almost impossible to find out what "the best" is, what we can do is to parse all constraint and find such an allocation which fits all the constraints, and at the same time uses given resources (disks) by maximum.
 
-* there are constraints, for example size of a space cannot be bigger than size of all disks, or size of swap space cannot be bigger or smaller than **size** of the space
-* there exists "the best allocation static schema", it's almost impossible to find what "the best" is, what we can do is to parse all constraint and find such an allocation which fits all the constraints, and at the same time uses given resources (disks) by maximum
+Lets consider an example with two spaces and a single disk.
+Parameters which don't affect allocation problem were removed to reduce the amount of unnecessary information.
 
-Lets consider an example with two spaces and a single disk, parameters which don't affect allocation problem were removed to reduce the amount of unnecessary information.
-
-Two space **root** and **swap**, for **swap** there is static size which is **10**, for **root** the size should be at least **50**.
+Two spaces **root** and **swap**, for **swap** there is static size which is **10**, the size of **root** space must be **50** or greater.
 
 .. code-block:: yaml
 
@@ -154,7 +152,7 @@ A single disk with size **100**.
       - id: sda
         size: 100
 
-Also we can describe the same problem as:
+Also we can describe the same problem as
 
 .. math::
 
@@ -195,7 +193,7 @@ The problem is described in terms of `Linear programming <https://en.wikipedia.o
 
 .. math::
 
-    max\left\{cx : Ax \ge b\right\}
+    max\left\{c^{T}x : Ax \ge b\right\}
 
 * **cx** - is an objective function for maximization
 * **c** - a vector of coefficients for the values to be found
@@ -203,12 +201,12 @@ The problem is described in terms of `Linear programming <https://en.wikipedia.o
 * **A** - coefficients matrix
 * **b** - a vector, when combined with a row from matrix **A** gives as a constraint
 
-Description of previous example in terms of Linear programming, is going to be pretty similar to what we did.
+Description of previous example in terms of Linear programming, is going to be pretty similar to what we did in previous section.
 
 .. math::
 
    x_1 = root\\
-   x_2 = swap\\[2ex]
+   x_2 = swap
 
 Coefficients for objective function.
 
@@ -216,16 +214,16 @@ Coefficients for objective function.
 
    c = \begin{bmatrix}
    1 & 1
-   \end{bmatrix}^{T}\\[2ex]
+   \end{bmatrix}^{T}
 
 A vector of values to be found, i.e. sizes of spaces.
 
 .. math::
 
    x = \begin{bmatrix}
-   x_1 \\
+   x_1 &
    x_2
-   \end{bmatrix}\\[2ex]
+   \end{bmatrix}
 
 System of linear inequalities. Inequalities which are "less or equal" multiplied by -1 to make them "greater or equal".
 
@@ -269,14 +267,14 @@ So what allocator does is builds a matrix and couple of vectors and using Simple
 Two disks
 ~~~~~~~~~
 
-If we have two spaces and two disks variable we will have 4 unkown variables:
+If there are two spaces and two disks, there are going to be 4 unkown variables:
 
-#. 1st space, 1st disk size
-#. 2st space, 1st disk size
-#. 1st space, 2st disk size
-#. 2st space, 2st disk size
+#. 1st space size for 1st disk.
+#. 2nd space size for 1st disk.
+#. 1st space size for 2nd disk.
+#. 2nd space size for 2nd disk.
 
-Spaces definition which was used previously.
+Lets take spaces definition which was used previously.
 
 .. code-block:: yaml
 
@@ -293,6 +291,7 @@ And two disks.
     disks:
       - id: sda
         size: 100
+
       - id: sdb
         size: 200
 
@@ -315,9 +314,9 @@ Resulting system of linear inequalities.
 Integer solution
 ~~~~~~~~~~~~~~~~
 
-By default result vector provides us with rational number vector solution.
+By default result vector provides rational number vector solution.
 Very naive way is being used to get integer soluton, we round the number down,
-this solution may have problems because some of the constraints may be vaiolated
+this solution may have problems because some of the constraints may be violated
 with respect to one megabyte.
 Another side effect is we may get **N** megabytes unallocated in the worst case, where
 **N** is an amount of spaces.
@@ -325,14 +324,14 @@ For our application purposes all above drawbacks are not so big, considering
 a complexity of proper solution.
 
 `Mixed integer programming <https://en.wikipedia.org/wiki/Integer_programming>`_ can
-be used to get integer result, but the problem is the problem described in terms of
+be used to get integer result, but solution for problems described in terms of
 Integer programming may be NP-hard. So it should be considered carefully if it's worth
 to be used.
 
 Ordering
 ~~~~~~~~
 
-It would be really nice to have the volumes allocated on the disks in the order which
+It would be really nice to have volumes allocated on disks in the order which
 was specified by the user.
 
 Lets consider two spaces example.
@@ -352,6 +351,7 @@ With two disks.
     disks:
       - id: sda
         size: 100
+
       - id: sdb
         size: 100
 
@@ -372,11 +372,10 @@ And objective function.
 
    Maximize: x_1 + x_2
 
-
 So we may have two obvious solutions here:
 
-#. var for 1st disk, root for 2nd
-#. root for 1st disk, var for 2nd
+#. **var** for 1st disk, **root** for 2nd.
+#. **root** for 1st disk, **var** for 2nd.
 
 Objective function is being used by the algorithm to decide, which solution
 is "better". Currently all elements in coefficients vector are equal to 1
@@ -387,7 +386,7 @@ is "better". Currently all elements in coefficients vector are equal to 1
    1 &
    1 &
    1
-   \end{bmatrix}^{T}`.
+   \end{bmatrix}^{T}
 
 We can change coefficients in a way that first volume has higher coefficient than the last one.
 
@@ -402,57 +401,58 @@ We can change coefficients in a way that first volume has higher coefficient tha
 
 Now Linear Programming solver will try to maximize the solution with respect to specified order of spaces.
 
-But it's not so simple, if we take a closer look at the results we may get.
-
+But that is not so simple, if we take a closer look at the results we may get.
 Lets consider two solutions and calculate the results of objective function.
 
 .. math::
 
-   cx = \begin{bmatrix}
-   100 &
-   0 &
-   0 &
-   100
+   c^{T}x =
+   \begin{bmatrix}
+   4 &
+   3 &
+   2 &
+   1
    \end{bmatrix}
    \begin{bmatrix}
-   4 \\
-   3 \\
-   2 \\
-   1
-   \end{bmatrix} =
-   \begin{bmatrix}
+   100 \\
+   0 \\
+   0 \\
+   100
+   \end{bmatrix}
+   =
+   sum\{\begin{bmatrix}
    400 \\
    0 \\
    0 \\
    100
-   \end{bmatrix}\\[2ex]
-
-   sum\{cx\} = 500
+   \end{bmatrix}
+   \}
+   = 500
 
 The result that objective function provides is **500**, if **root** is allocated on the first disk and **var** on second one.
 
 .. math::
 
-   cx = \begin{bmatrix}
-   50 &
-   50 &
-   50 &
-   50
-   \end{bmatrix}
+   c^{T}x = 
    \begin{bmatrix}
-   4 \\
-   3 \\
-   2 \\
+   4 &
+   3 &
+   2 &
    1
    \end{bmatrix} =
    \begin{bmatrix}
+   50 \\
+   50 \\
+   50 \\
+   50
+   \end{bmatrix}
+   sum \begin{bmatrix}
    200 \\
    150 \\
    100 \\
    50
-   \end{bmatrix}\\[2ex]
-
-   sum\{cx\} = 500
+   \end{bmatrix}
+   = 500
 
 
 The result that objective function provides is **500**, if **root** and **var** are allocated equally on both disks.
@@ -496,51 +496,51 @@ Lets use this sequence in our examples
 
 .. math::
 
-   cx = \begin{bmatrix}
-   100 &
-   0 &
-   0 &
-   100
-   \end{bmatrix}
+   c^{T}x = 
    \begin{bmatrix}
-   6 \\
-   4 \\
-   2 \\
+   6 &
+   4 &
+   2 &
    1
    \end{bmatrix} =
    \begin{bmatrix}
+   100 \\
+   0 \\
+   0 \\
+   100
+   \end{bmatrix}
+   sum\begin{bmatrix}
    600 \\
    0 \\
    0 \\
    100
-   \end{bmatrix}\\[2ex]
-
-   sum\{cx\} = 700
+   \end{bmatrix}
+   = 700
 
 And when **root** and **var** are allocated on both disks equally
 
 .. math::
 
-   cx = \begin{bmatrix}
-   50 &
-   50 &
-   50 &
-   50
-   \end{bmatrix}
+   c^{T}x =
    \begin{bmatrix}
-   6 \\
-   4 \\
-   2 \\
+   6 &
+   4 &
+   2 &
    1
    \end{bmatrix} =
    \begin{bmatrix}
+   50 \\
+   50 \\
+   50 \\
+   50
+   \end{bmatrix}
+   sum\begin{bmatrix}
    300 \\
    200 \\
    100 \\
    50
-   \end{bmatrix}\\[2ex]
-
-   sum\{cx\} = 650
+   \end{bmatrix}
+   = 650
 
 
 Soo :math:`700 > 650` first function has greater maximization value, that is exactly what we need.
