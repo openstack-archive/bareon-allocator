@@ -361,7 +361,7 @@ Which can be represented as next inequality.
 
     \begin{cases}
     x_1 + x_2 \le 100 \\
-    x_3 + x_4 \le 200 \\
+    x_3 + x_4 \le 100 \\
     x_1 + x_3 = 100 \\
     x_2 + x_4 = 100
     \end{cases}
@@ -373,13 +373,13 @@ And objective function.
    Maximize: x_1 + x_2
 
 
-So we may have two solutions here:
+So we may have two obvious solutions here:
 
 #. var for 1st disk, root for 2nd
 #. root for 1st disk, var for 2nd
 
 Objective function is being used by the algorithm to decide, which solution
-"better". Currently all elements in coefficients vector are equal to 1
+is "better". Currently all elements in coefficients vector are equal to 1
 
 .. math::
    c = \begin{bmatrix}
@@ -400,7 +400,153 @@ We can change coefficients in a way that first volume has higher coefficient tha
    1
    \end{bmatrix}^{T}\\[2ex]
 
-Now Linear Pgroamming solver will try to maximize the solution with respect to specified order of spaces.
+Now Linear Programming solver will try to maximize the solution with respect to specified order of spaces.
+
+But it's not so simple, if we take a closer look at the results we may get.
+
+Lets consider two solutions and calculate the results of objective function.
+
+.. math::
+
+   cx = \begin{bmatrix}
+   100 &
+   0 &
+   0 &
+   100
+   \end{bmatrix}
+
+   \begin{bmatrix}
+   4 \\
+   3 \\
+   2 \\
+   1
+   \end{bmatrix} =
+
+   \begin{bmatrix}
+   400 \\
+   0 \\
+   0 \\
+   100
+   \end{bmatrix}\\[2ex]
+
+   sum\{cx\} = 500
+
+The result that objective function provides is **500**, if **root** is allocated on the first disk and **var** on second one.
+
+.. math::
+
+   cx = \begin{bmatrix}
+   50 &
+   50 &
+   50 &
+   50
+   \end{bmatrix}
+
+   \begin{bmatrix}
+   4 \\
+   3 \\
+   2 \\
+   1
+   \end{bmatrix} =
+
+   \begin{bmatrix}
+   200 \\
+   150 \\
+   100 \\
+   50
+   \end{bmatrix}\\[2ex]
+
+   sum\{cx\} = 500
+
+
+The result that objective function provides is **500**, if **root** and **var** are allocated equally on both disks.
+
+So we need a different monolitically increasing sequence of integers, which is increasing as slow as possible.
+
+Also sequence must not violate next requirements.
+
+.. math::
+
+    n_{i+1} \gt n_i \\[2ex]
+    n_{i} + n_{j+1} \gt n_{i+1} + n_{j}$ where $i+1 < j
+
+It means that sum of ranges taken on the "lower side" of a sequence has to be always smaller than sum of range on "higher side".
+
+In our example this requirement is violated
+
+.. math::
+
+   i = 1\\
+   j = 3\\
+   1 + 4 = 2 + 3
+
+Such sequence has been `found <http://math.stackexchange.com/questions/1596496/finding-a-monotonically-increasing-sequence-of-integers/1596812>`_
+
+.. math::
+
+   1,2,4,6,9,12,16,20,25,30,36,42\cdots
+
+there are `many ways <https://oeis.org/A002620>`_ to caculate such sequence, in our implementation next one is being used
+
+.. math::
+
+   a_n=\lfloor\frac {n+1}2\rfloor\lfloor\frac {n+2}2\rfloor
+
+Lets use this sequence in our examples
+
+.. math::
+
+   cx = \begin{bmatrix}
+   100 &
+   0 &
+   0 &
+   100
+   \end{bmatrix}
+
+   \begin{bmatrix}
+   6 \\
+   4 \\
+   2 \\
+   1
+   \end{bmatrix} =
+
+   \begin{bmatrix}
+   600 \\
+   0 \\
+   0 \\
+   100
+   \end{bmatrix}\\[2ex]
+
+   sum\{cx\} = 700
+
+And when **root** and **var** are allocated on both disks equally
+
+.. math::
+
+   cx = \begin{bmatrix}
+   50 &
+   50 &
+   50 &
+   50
+   \end{bmatrix}
+
+   \begin{bmatrix}
+   6 \\
+   4 \\
+   2 \\
+   1
+   \end{bmatrix} =
+
+   \begin{bmatrix}
+   300 \\
+   200 \\
+   100 \\
+   50
+   \end{bmatrix}\\[2ex]
+
+   sum\{cx\} = 650
+
+Soo :math:`700 > 650` first function has greater maximization value, that is exactly what we need.
 
 Weight
 ~~~~~~
@@ -444,7 +590,7 @@ Each space can have **weight** variable specified (**1** by default), which is u
     x_1 + x_2 \le 100 \\
     x_3 + x_4 \le 200 \\
     x_1 + x_3 = 100 \\
-    x_2 + x_4 = 100
+    x_2 + x_4 = 100 \\
     x_2 * (1 / weight) + x_4 * (-1 / weight) = 0
     \end{cases}
 
@@ -498,18 +644,13 @@ So in solver we get a list of **ssd** disks, if there are any.
 
 Lets adjust coefficients to make ceph-journal to be allocated on ssd, as a second priority ordering should be respected.
 
-In order to do that lets make order coefficient :math:`0 < order_coefficient < 1`.
+In order to do that lets make order coefficient :math:`0 < order coefficient < 1`.
 
 .. math::
 
    c = \begin{bmatrix}
-   1 + (1/5) &
+   1 + (1/9) &
+   0 + (1/6) &
    0 + (1/4) &
-   0 + (1/3) &
    1 + (1/2)
    \end{bmatrix}^{T}\\[2ex]
-
-
-Advacned ordering
-~~~~~~~~~~~~~~~~~
-
