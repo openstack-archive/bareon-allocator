@@ -136,7 +136,7 @@ Lets try to generalize a problem of spaces allocation:
 
 Lets consider an example with two spaces and a single disk, parameters which don't affect allocation problem were removed to reduce the amount of unnecessary information.
 
-Two space **root** and **swap**, for **swap** there is static size which is 10, for **root** the size should be at least 50.
+Two space **root** and **swap**, for **swap** there is static size which is **10**, for **root** the size should be at least **50**.
 
 .. code-block:: yaml
 
@@ -146,7 +146,7 @@ Two space **root** and **swap**, for **swap** there is static size which is 10, 
     - id: swap
       size: 10
 
-A single ~10G disk.
+A single disk with size **100**.
 
 .. code-block:: yaml
 
@@ -523,6 +523,7 @@ And when **root** and **var** are allocated on both disks equally
 
 .. math::
 
+   $$
    cx = \begin{bmatrix}
    50 &
    50 &
@@ -545,6 +546,8 @@ And when **root** and **var** are allocated on both disks equally
    \end{bmatrix}\\[2ex]
 
    sum\{cx\} = 650
+
+   $$
 
 Soo :math:`700 > 650` first function has greater maximization value, that is exactly what we need.
 
