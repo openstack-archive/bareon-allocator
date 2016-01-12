@@ -267,7 +267,7 @@ So what allocator does, is builds a matrix and couple of vectors and using Simpl
 Two disks
 ~~~~~~~~~
 
-If there are two spaces and two disks, there are going to be 4 unkown variables:
+If there are two spaces and two disks, there are going to be 4 unknown variables:
 
 #. 1st space size for 1st disk.
 #. 2nd space size for 1st disk.
@@ -566,10 +566,10 @@ Two spaces, no exact size specified.
 .. code-block:: yaml
 
     - id: root
-      size: 10
+      min_size: 10
 
     - id: var
-      size: 10
+      min_size: 10
 
 A single disk.
 
@@ -659,11 +659,17 @@ In order to do that lets make order coefficient :math:`0 < \textrm{order coeffic
 .. math::
 
    c = \begin{bmatrix}
-   1 + (1/2) \\
-   0 + (1/4) \\
-   0 + (1/6) \\
-   1 + (1/9)
+   0 + (1/2) \\
+   1 + (1/4) \\
+   1 + (1/6) \\
+   0 + (1/9)
    \end{bmatrix}
+
+or
+
+.. math::
+
+   c^{T}x = x_1 * (0 + 1/2) + x_2 * (1 + 1/4) + x_3 * (1 + 1/6) + x_4 * (0 + 1/9)
 
 #. Build sets according to selected disks, in our case we have two sets, **hdd** and **ssd** disks.
 #. For spaces which belong to specific set of disks add **1** to a coefficient which represents this space on a disk from the set.
@@ -676,11 +682,11 @@ coefficient of space which belongs to the set of disks to **2**.
 .. math::
 
    c = \begin{bmatrix}
-   2 + (1/2)\\
-   0 + (1/4)\\
+   0 + (1/2)\\
+   2 + (1/4)\\
    1 \\
-   0 + (1/9)\\
-   2 + (1/12)\\
+   2 + (1/9)\\
+   0 + (1/12)\\
    1
    \end{bmatrix}
 
