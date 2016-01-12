@@ -669,7 +669,7 @@ or
 
 .. math::
 
-   c^{T}x = x_1 * (0 + 1/2) + x_2 * (1 + 1/4) + x_3 * (1 + 1/6) + x_4 * (0 + 1/9)
+   c^{T}x = x_1 \cdot (0 + 1/2) + x_2 \cdot (1 + 1/4) + x_3 \cdot (1 + 1/6) + x_4 \cdot (0 + 1/9)
 
 #. Build sets according to selected disks, in our case we have two sets, **hdd** and **ssd** disks.
 #. For spaces which belong to specific set of disks add **1** to a coefficient which represents this space on a disk from the set.
