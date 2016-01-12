@@ -50,7 +50,7 @@ High level architecture
 Dynamic schema parser
 ---------------------
 
-In the current version we user flat schema, it's a list which consists of dictionaries.
+In the current version we use flat schema, it's a list which consists of dictionaries.
 
 Basic syntax
 ~~~~~~~~~~~~
