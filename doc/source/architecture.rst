@@ -229,7 +229,7 @@ System of linear inequalities. Inequalities which are "less or equal" multiplied
 
 .. math::
 
-   Ax^{T} \ge b = \begin{cases}
+   Ax \ge b = \begin{cases}
     - x_1  - x_2 & \ge -100 \\
     x_1 & \ge 50 \\
     -x_2 & \ge -10 \\
