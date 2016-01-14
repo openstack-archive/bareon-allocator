@@ -119,7 +119,7 @@ class DynamicAllocator(object):
             Parser(schema, hw_info).parse(),
             hw_info)
         LOG.debug('Rendered spaces schema: \n%s', rendered_spaces)
-        self.spaces = [Space(**space) for space in rendered_spaces]
+        self.spaces = [Space(**space) for space in rendered_spaces if space['type'] != 'vg']
 
         # Unallocated is required in order to be able to specify
         # spaces with only minimal
@@ -144,10 +144,14 @@ class DynamicAllocator(object):
         to a list of indexes in `disks` list.
         """
         for i, space in enumerate(spaces):
+
             if space.get('best_with_disks'):
                 disks_idx = set()
                 for disk in space['best_with_disks']:
-                    disks_idx.add(self.raw_disks.index(disk))
+                    try:
+                        disks_idx.add(self.raw_disks.index(disk))
+                    except ValueError as exc:
+                        LOG.warn('Warning: %s', exc)
 
                 spaces[i]['best_with_disks'] = disks_idx
 
@@ -174,7 +178,7 @@ class DynamicAllocationLinearProgram(object):
         # in combination with space which has max_size
         # so there will be unallocated space
         # ['min_size', 'best_with_disks'],
-        ['max_size', 'best_with_disks'],
+        # ['max_size', 'best_with_disks'],
         ['min_size', 'max_size', 'best_with_disks']]
 
     def __init__(self, disks, spaces):
@@ -456,6 +460,7 @@ class DynamicAllocationLinearProgram(object):
         # A list of disks ids which are not selected for specific spaces
         all_disks_ids = [i for i in range(len(self.disks))]
         used_disks_ids = []
+
         for k, space in self._get_sets_by(['best_with_disks']):
             if k[0]:
                 used_disks_ids.extend(list(k[0]))
