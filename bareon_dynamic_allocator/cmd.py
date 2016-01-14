@@ -37,7 +37,12 @@ cli_opts = [
         'hw-info',
         required=True,
         help='Hardware information'
-    )
+    ),
+    cfg.StrOpt(
+        'svg-file',
+        required=True,
+        help='Svg file is required for svg viewer'
+    ),
 ]
 
 
@@ -75,7 +80,7 @@ def parse_configs(conf):
 
 def save_result(data, output_file):
     viewer.StdoutViewer(data).show_me()
-    viewer.SVGViewer(data).show_me()
+    viewer.SVGViewer(data, file_path=output_file).show_me()
 
 
 def validate_schema(schema):
@@ -96,7 +101,7 @@ def allocator():
 
     schema = DynamicAllocator(*conf).generate_static()
 
-    save_result(schema, CONF.file)
+    save_result(schema, CONF.svg_file)
 
 
 if __name__ == '__main__':
