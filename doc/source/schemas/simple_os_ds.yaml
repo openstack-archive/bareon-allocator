@@ -43,8 +43,8 @@
   contains:
     - id: data_var_lib
 
-- id: data_var_lib
+- id: data_var
   type: lv
   fs_type: ext4
   min: 1000
-  mount: /var/lib
+  mount: /var
