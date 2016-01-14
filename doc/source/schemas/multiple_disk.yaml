@@ -1,0 +1,31 @@
+ram: 1024
+
+disks:
+
+  - id: sda
+    path: /dev/disk/by-path/path-for-sda
+    dev: /dev/sda
+    type: hdd
+    vendor: Hitachi
+    size: 10000
+
+  - id: sdb
+    path: /dev/disk/by-path/path-for-sdb
+    dev: /dev/sdb
+    type: hdd
+    vendor: Hitachi
+    size: 10000
+
+  - id: sdc
+    path: /dev/disk/by-path/path-for-sdc
+    dev: /dev/sdc
+    type: hdd
+    vendor: Hitachi
+    size: 10000
+
+  - id: sde
+    path: /dev/disk/by-path/path-for-sde
+    dev: /dev/sde
+    type: ssd
+    vendor: Hitachi
+    size: 2048

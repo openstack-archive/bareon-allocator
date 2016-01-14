@@ -1,0 +1,9 @@
+ram: 1024
+
+disks:
+  - id: sda
+    path: /dev/disk/by-path/path-for-sda
+    dev: /dev/sda
+    type: hdd
+    vendor: Hitachi
+    size: 10000

@@ -13,6 +13,7 @@ Contents:
 
    readme
    architecture
+   examples
    installation
    usage
    contributing

@@ -1,0 +1,38 @@
+- id: os
+  type: vg
+  contains:
+    - id: swap
+    - id: root
+
+- id: root
+  type: lv
+  size: 5000
+  mount: /
+  fs_type: ext4
+
+- id: swap
+  type: lv
+  size: |
+    yaql=let(ram => $.get(ram, 1024)) ->
+    selectCase(
+      $ram <= 2048,
+      $ram > 2048 and $ram < 8192,
+      $ram > 8192 and $ram < 65536).
+    switchCase(
+      $ram * 2,
+      $ram,
+      $ram / 2,
+      4096)
+  fs_type: swap
+
+- id: ceph
+  type: partition
+  fs_type: ext4
+  min_size: 1000
+  best_with_disks: |
+    yaql=$.disks.where($.type = "hdd").skip(1)
+
+- id: ceph-journal
+  type: partition
+  best_with_disks: |
+    yaql=$.disks.where($.type = "ssd")
