@@ -8,15 +8,14 @@
 #
 #    Unless required by applicable law or agreed to in writing, software
 #    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See then
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
 
-import yaml
-import yaql
-import six
 import re
+import six
+import yaql
 
 
 def seq_iter(obj):
@@ -27,7 +26,7 @@ def seq_iter(obj):
         for i in xrange(len(obj)):
             yield i, obj[i]
 
-               
+
 class YAQLParser(object):
     engine_options = {
         'yaql.limitIterators': 100,

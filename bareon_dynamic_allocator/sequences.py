@@ -8,7 +8,7 @@
 #
 #    Unless required by applicable law or agreed to in writing, software
 #    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See then
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
@@ -30,7 +30,7 @@ class BaseSequence(object):
         self.previous = self.current
         self.current += 1
         return self.current
-        
+
 
 class CrossSumInequalitySequence(BaseSequence):
     """An implementaion of a sequence from 1 to n
@@ -52,7 +52,9 @@ class CrossSumInequalitySequence(BaseSequence):
 
 
 class FibonacciSequence(BaseSequence):
-    """Iterator over a sequence of Fibonacci numbers with n elements from 1 to n
+    """Generates fibinacci sequence
+
+    Iterator over a sequence of Fibonacci numbers with n elements from 1 to n.
     """
     def __init__(self, n):
         super(FibonacciSequence, self).__init__(n)
@@ -64,5 +66,6 @@ class FibonacciSequence(BaseSequence):
             raise StopIteration
         else:
             self.n_current += 1
-            self.previous, self.current = self.current, self.current + self.previous
+            self.previous, self.current = \
+                self.current, self.current + self.previous
             return self.current

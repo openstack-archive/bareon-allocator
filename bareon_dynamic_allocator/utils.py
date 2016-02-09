@@ -8,7 +8,7 @@
 #
 #    Unless required by applicable law or agreed to in writing, software
 #    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See then
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
@@ -16,7 +16,8 @@ import yaml
 
 
 def parse_yaml(path):
-    """Parses yaml file
+    """Parses yaml file.
+
     :param str path: path to the file
     :returns: dict or list
     """

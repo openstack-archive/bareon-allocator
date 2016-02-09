@@ -8,13 +8,13 @@
 #
 #    Unless required by applicable law or agreed to in writing, software
 #    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See then
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
 from pprint import pprint
 import svgwrite
-from svgwrite import cm, mm
+from svgwrite import cm
 
 
 class StdoutViewer(object):
@@ -36,7 +36,9 @@ class SVGViewer(object):
     SPACES_X_INTERVAL = 2
     STYLE = "fill:{color};stroke:black;stroke-width:5;"
 
-    def __init__(self, disks_spaces_mapping, file_path='/tmp/bareon.svg', fit=False):
+    def __init__(self, disks_spaces_mapping,
+                 file_path='/tmp/bareon.svg', fit=False):
+
         self.disks_spaces_mapping = disks_spaces_mapping
         max_disk_size = max([i['size'] for i in disks_spaces_mapping])
         self.width_multiplier = 450.0 / max_disk_size
@@ -47,7 +49,8 @@ class SVGViewer(object):
         if fit:
             options = {
                 'preserveAspectRatio': 'none',
-                'viewBox': "0 0 {0} {1}".format(svg_width, svg_height) if fit else '0 0 maxY maxX'}
+                'viewBox': "0 0 {0} {1}".format(svg_width, svg_height)
+                if fit else '0 0 maxY maxX'}
 
         self.dwg = svgwrite.Drawing(
             filename=file_path,
@@ -59,16 +62,26 @@ class SVGViewer(object):
         self.dwg.save()
 
     def _add_disk_with_spaces(self):
-        disk_g = self.dwg.add(self.dwg.g(id='disks-group', transform="translate({0}, {1})".format(30, 30)))
+        disk_g = self.dwg.add(self.dwg.g(
+            id='disks-group',
+            transform="translate({0}, {1})".format(30, 30)))
 
         for disk_idx, disk_w_spaces in enumerate(self.disks_spaces_mapping):
             disk_id = disk_w_spaces['disk_id']
             size = disk_w_spaces['size']
 
-            disk = disk_g.add(self.dwg.g(id=disk_id, transform="translate(0, {0})".format(disk_idx * self.DISKS_INTERVAL)))
-            disk.add(self.dwg.text(text='{0} size={1}'.format(disk_id, size), fill="black"))
+            disk = disk_g.add(self.dwg.g(
+                id=disk_id,
+                transform="translate(0, {0})".format(
+                    disk_idx * self.DISKS_INTERVAL)))
 
-            disk_rect = disk.add(self.dwg.g(transform="translate({0}, {1})".format(0, 10), id='in-{0}'.format(disk_id)))
+            disk.add(self.dwg.text(
+                text='{0} size={1}'.format(disk_id, size),
+                fill="black"))
+
+            disk_rect = disk.add(self.dwg.g(
+                transform="translate({0}, {1})".format(0, 10),
+                id='in-{0}'.format(disk_id)))
             disk_rect.add(self.dwg.rect(
                 style=self.STYLE.format(color='#f5f5f5'),
                 ry=5,
@@ -85,16 +98,22 @@ class SVGViewer(object):
                     rx=5,
                     id=space['space_id'],
                     insert=last_insert,
-                    size=(self.width_multiplier * space['size'], self.SPACE_HEIGHT)))
+                    size=(self.width_multiplier * space['size'],
+                          self.SPACE_HEIGHT)))
 
                 last_insert[0] += self.width_multiplier * space['size']
 
-            spaces_lines = ['{0} size={1}'.format(space['space_id'], space['size']) for space in disk_w_spaces['spaces']]
+            spaces_lines = ['{0} size={1}'.format(space['space_id'],
+                                                  space['size'])
+                            for space in disk_w_spaces['spaces']]
 
             last_insert[0] = self.width_multiplier * disk_w_spaces['size']
             last_insert[0] += 10
             last_insert[1] += 20
             for space_idx, space_line in enumerate(spaces_lines):
                 palette = self.PALETTE[space_idx % len(self.PALETTE)]
-                disk_rect.add(self.dwg.text(insert=last_insert, text=space_line, fill=palette))
+                disk_rect.add(self.dwg.text(
+                    insert=last_insert,
+                    text=space_line,
+                    fill=palette))
                 last_insert[1] += 20

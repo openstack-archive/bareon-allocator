@@ -8,7 +8,7 @@
 #
 #    Unless required by applicable law or agreed to in writing, software
 #    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See then
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
@@ -17,8 +17,8 @@ import sys
 from oslo_config import cfg
 from oslo_log import log
 
-from bareon_dynamic_allocator import utils
 from bareon_dynamic_allocator.allocators import DynamicAllocator
+from bareon_dynamic_allocator import utils
 from bareon_dynamic_allocator import viewer
 
 
@@ -84,12 +84,12 @@ def save_result(data, output_file):
 
 
 def validate_schema(schema):
-    # TODO should be implemented
+    # TODO(eli): should be implemented
     return schema
 
 
 def validate_hw_info(hw_info):
-    # TODO should be implemented
+    # TODO(eli): should be implemented
     return hw_info
 
 

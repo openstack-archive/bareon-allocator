@@ -8,47 +8,65 @@
 #
 #    Unless required by applicable law or agreed to in writing, software
 #    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See then
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
 import os
+import six
 
 from glob import glob
 
+from bareon_dynamic_allocator.allocators import DynamicAllocator
 from bareon_dynamic_allocator import utils
 from bareon_dynamic_allocator import viewer
-from bareon_dynamic_allocator.allocators import DynamicAllocator
 
 
-doc_schemas_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) , 'doc', 'source', 'schemas')
-doc_schemas_rst_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) , 'doc', 'source', 'examples.rst')
+doc_schemas_path = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    'doc',
+    'source',
+    'schemas')
+doc_schemas_rst_path = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    'doc',
+    'source',
+    'examples.rst')
 
 
 def generate_svg_files():
 
     result = {}
 
-    for dynamic_schema_path in sorted(glob(os.path.join(doc_schemas_path, '*_ds.yaml'))):
-        print 'Read file {0}'.format(dynamic_schema_path)
+    for dynamic_schema_path in sorted(
+            glob(os.path.join(doc_schemas_path, '*_ds.yaml'))):
+        print('Read file {0}'.format(dynamic_schema_path))
         dynamic_schema = utils.parse_yaml(dynamic_schema_path)
         dynamic_schema_file_name = os.path.basename(dynamic_schema_path)
         dynamic_schema_name = os.path.splitext(dynamic_schema_file_name)[0]
-        for hw_info_path in sorted(glob(os.path.join(doc_schemas_path, '*_disk.yaml'))):
-            print 'Read file {0}'.format(hw_info_path)
+        for hw_info_path in sorted(
+                glob(os.path.join(doc_schemas_path, '*_disk.yaml'))):
+            print('Read file {0}'.format(hw_info_path))
             hw_info_file_name = os.path.basename(hw_info_path)
             hw_info_name = os.path.splitext(hw_info_file_name)[0]
             hw_info = utils.parse_yaml(hw_info_path)
-            static_schema = DynamicAllocator(hw_info, dynamic_schema).generate_static()
+            static_schema = DynamicAllocator(
+                hw_info,
+                dynamic_schema).generate_static()
 
-            static_schema_name = '{0}_{1}.svg'.format(dynamic_schema_name, hw_info_name)
+            static_schema_name = '{0}_{1}.svg'.format(
+                dynamic_schema_name,
+                hw_info_name)
             result[static_schema_name[:-4]] = {
-                'dynamic_schema': os.path.join('schemas', dynamic_schema_file_name),
+                'dynamic_schema': os.path.join('schemas',
+                                               dynamic_schema_file_name),
                 'hw_info': os.path.join('schemas', hw_info_file_name),
                 'image': os.path.join('schemas', static_schema_name)}
 
-            viewer.SVGViewer(static_schema, file_path=os.path.join(doc_schemas_path, static_schema_name), fit=True).show_me()
+            viewer.SVGViewer(static_schema,
+                             file_path=os.path.join(doc_schemas_path,
+                                                    static_schema_name),
+                             fit=True).show_me()
 
     rst_doc = """
 ===================

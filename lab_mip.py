@@ -12,8 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
-from pulp import *
+from pulp import * # flake8: noqa
 import sys
 
 x = []
@@ -52,7 +51,7 @@ prob += x1 + x2 <= 100, 'First disk'
 prob += x3 + x4 <= 100, 'Second disk'
 prob += x5 + x6 <= 100, 'Third disk'
 
-prob += y1 + y3 + y5 == 2, 'Replication factor'
+prob += y1 + y3 + y5 == 1, 'Replication factor'
 
 prob += x2 + x4 + x6 >= 10, 'Second min size'
 
@@ -102,6 +101,7 @@ for i, x_ in enumerate(x):
 # solve the problem
 status = prob.solve(GLPK(msg=1))
 
+
 def print_vector(vector, prefix, n=2):
 
     for i, v in enumerate(vector):
@@ -111,10 +111,11 @@ def print_vector(vector, prefix, n=2):
         else:
             sys.stdout.write('\n')
 
-print
+
+print()
 print_vector(x, 'x')
-print
+print()
 print_vector(y, 'y')
-print
+print()
 print_vector(z, 'z', n=3)
-print
+print()

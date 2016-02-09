@@ -1,4 +1,6 @@
-#    Copyright 2015 Mirantis, Inc.
+# -*- coding: utf-8 -*-
+
+#    Copyright 2016 Mirantis, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -8,19 +10,19 @@
 #
 #    Unless required by applicable law or agreed to in writing, software
 #    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See then
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
 import itertools
 import math
 
-import six
 import numpy as np
-from termcolor import colored
+import six
+
 from oslo_log import log
 from scipy.optimize import linprog
-from scipy.ndimage.interpolation import shift
+from termcolor import colored
 
 from bareon_dynamic_allocator import errors
 from bareon_dynamic_allocator.parser import Parser
@@ -38,7 +40,8 @@ def shift(arr, steps, val=0):
 
 
 def grouper(iterable, n, fillvalue=None):
-    """Collect data into fixed-length chunks or blocks
+    """Collect data into fixed-length chunks or blocks.
+
     Source: https://docs.python.org/2/library/itertools.html#recipes
     """
     args = [iter(iterable)] * n
@@ -46,11 +49,10 @@ def grouper(iterable, n, fillvalue=None):
 
 
 def format_x_vector(coefficients, num=0):
-    return '\n' + '\n'.join(
+    return '\n{0}\n'.format('\n'.join(
         [' + '.join(group)
-         for group in grouper(
-                 ['({0:+.5f} * x{1})'.format(c, i)
-                  for i, c in enumerate(coefficients)], num)]) + '\n'
+         for group in grouper(['({0:+.5f} * x{1})'.format(c, i)
+                               for i, c in enumerate(coefficients)], num)]))
 
 
 def format_equation(matrix, vector, row_len):
@@ -75,7 +77,6 @@ def format_equation(matrix, vector, row_len):
         equation.append(line)
 
     return '\n'.join(equation)
-
 
 
 class Disk(object):
@@ -119,7 +120,8 @@ class DynamicAllocator(object):
             Parser(schema, hw_info).parse(),
             hw_info)
         LOG.debug('Rendered spaces schema: \n%s', rendered_spaces)
-        self.spaces = [Space(**space) for space in rendered_spaces if space['type'] != 'vg']
+        self.spaces = [Space(**space)
+                       for space in rendered_spaces if space['type'] != 'vg']
 
         # Unallocated is required in order to be able to specify
         # spaces with only minimal
@@ -140,7 +142,9 @@ class DynamicAllocator(object):
         return sizes
 
     def convert_disks_to_indexes(self, spaces, hw_info):
-        """Convert disks which are specified in `best_with_disks`
+        """Convert disks to indexes.
+
+        Convert disks which are specified in `best_with_disks`
         to a list of indexes in `disks` list.
         """
         for i, space in enumerate(spaces):
@@ -159,7 +163,9 @@ class DynamicAllocator(object):
 
 
 class DynamicAllocationLinearProgram(object):
-    """Use Linear Programming method [0] (the method itself has nothing to do
+    """Linear programming allocator.
+
+    Use Linear Programming method [0] (the method itself has nothing to do
     with computer-programming) in order to formulate and solve the problem
     of spaces allocation on disks, with the best outcome.
 
@@ -214,7 +220,7 @@ class DynamicAllocationLinearProgram(object):
         # disk we have len(spaces) * len(disks) sizes
         self.x_amount = len(self.disks) * len(self.spaces)
 
-        # TODO: has to be refactored
+        # TODO(eli): has to be refactored
         # Here we store indexes for bounds and equation
         # matrix, in order to be able to change it on
         # refresh
@@ -231,7 +237,8 @@ class DynamicAllocationLinearProgram(object):
         upper_bound_vector = self._make_upper_bound_constraint_vector() or None
 
         LOG.debug('Objective function coefficients human-readable:\n%s\n',
-                  format_x_vector(self.objective_function_coefficients, len(self.spaces)))
+                  format_x_vector(self.objective_function_coefficients,
+                                  len(self.spaces)))
 
         LOG.debug('Equality equation:\n%s\n',
                   format_equation(
@@ -245,7 +252,8 @@ class DynamicAllocationLinearProgram(object):
                       len(self.spaces)))
 
         for weight_for_sets in self.weight_set_mapping:
-            LOG.debug('Parameters for spaces set formation: %s', weight_for_sets)
+            LOG.debug('Parameters for spaces set formation: %s',
+                      weight_for_sets)
             self._set_spaces_sets_by(weight_for_sets)
             solution = linprog(
                 self.objective_function_coefficients,
@@ -321,8 +329,8 @@ class DynamicAllocationLinearProgram(object):
             return [getattr(space, c, None) for c in criteria]
 
         grouped_spaces = itertools.groupby(
-                sorted(self.spaces, key=get_values),
-                key=get_values)
+            sorted(self.spaces, key=get_values),
+            key=get_values)
 
         return [(k, list(v)) for k, v in grouped_spaces]
 
@@ -330,7 +338,9 @@ class DynamicAllocationLinearProgram(object):
         self.weight_spaces_sets = self._get_spaces_sets_by(criteria)
 
     def _refresh_weight(self):
-        """Create weight constraints for spaces which have same
+        """Refresh weight.
+
+        Create weight constraints for spaces which have same
         max constraint or for those which don't have it at all.
 
         Lets say, second's space is equal to max of the third and fourth,
@@ -356,34 +366,44 @@ class DynamicAllocationLinearProgram(object):
                 row = self._make_matrix_row()
                 weight = getattr(space, 'weight', DEFAULT_WEIGHT)
 
-                # If weight is 0, it doesn't make sense to set for such space a weight
+                # If weight is 0, it doesn't make sense to set for such
+                # space a weight
                 if weight == 0:
                     continue
 
                 space_idx = self.spaces.index(space)
 
                 for disk_idx in range(len(self.disks)):
-                    row[disk_idx * len(self.spaces) + first_space_idx] = 1 / first_weight
-                    row[disk_idx * len(self.spaces) + space_idx] = -1 / weight
+                    row_i = disk_idx * len(self.spaces)
+                    row[row_i + first_space_idx] = 1 / first_weight
+                    row[row_i + space_idx] = -1 / weight
 
-                self.weight_equation_indexes.append(len(self.equality_constraint_matrix) - 1)
+                self.weight_equation_indexes.append(
+                    len(self.equality_constraint_matrix) - 1)
 
                 self.equality_constraint_matrix.append(row)
-                self.equality_constraint_vector = np.append(self.equality_constraint_vector, 0)
+                self.equality_constraint_vector = np.append(
+                    self.equality_constraint_vector,
+                    0)
 
     def _make_matrix_row(self):
         return np.zeros(self.x_amount)
 
     def _make_upper_bound_constraint_matrix(self):
-        """Upper bound constraint matrix consist of upper bound
-        matrix and lower bound matrix witch changed sign
+        """Creates upper bound constraint matrix.
+
+        Upper bound constraint matrix consist of upper bound
+        matrix and lower bound matrix witch changed sign.
         """
         return (self.upper_bound_constraint_matrix +
-                [[-i for i in row] for row in self.lower_bound_constraint_matrix])
+                [[-i for i in row]
+                 for row in self.lower_bound_constraint_matrix])
 
     def _make_upper_bound_constraint_vector(self):
-        """Upper bound constraint vector consist of upper bound
-        and lower bound, with changed sign
+        """Create upper bound constraint vector.
+
+        Upper bound constraint vector consist of upper bound and
+        lower bound, with changed sign.
         """
         return (self.upper_bound_constraint_vector +
                 [-i for i in self.lower_bound_constraint_vector])
@@ -391,10 +411,14 @@ class DynamicAllocationLinearProgram(object):
     def _convert_solution(self, solution_vector):
         result = []
 
-        spaces_grouped_by_disk = list(grouper(solution_vector, len(self.spaces)))
+        spaces_grouped_by_disk = list(grouper(
+            solution_vector,
+            len(self.spaces)))
         for disk_i in range(len(self.disks)):
             disk_id = self.disks[disk_i].id
-            disk = {'disk_id': disk_id, 'size': self.disks[disk_i].size, 'spaces': []}
+            disk = {'disk_id': disk_id,
+                    'size': self.disks[disk_i].size,
+                    'spaces': []}
             spaces_for_disk = spaces_grouped_by_disk[disk_i]
 
             for space_i, space_size in enumerate(spaces_for_disk):
@@ -410,7 +434,9 @@ class DynamicAllocationLinearProgram(object):
         for d in disks:
             # Initialize constraints, each row in the matrix should
             # be equal to size of the disk
-            self.equality_constraint_vector = np.append(self.equality_constraint_vector, d.size)
+            self.equality_constraint_vector = np.append(
+                self.equality_constraint_vector,
+                d.size)
 
         # Initialize the matrix
         # In case of 2 spaces and 3 disks the result should be:
@@ -432,7 +458,10 @@ class DynamicAllocationLinearProgram(object):
 
         for _ in range(len(disks)):
             self.equality_constraint_matrix.append(equality_matrix_row)
-            equality_matrix_row = shift(equality_matrix_row, len(spaces), val=0)
+            equality_matrix_row = shift(
+                equality_matrix_row,
+                len(spaces),
+                val=0)
 
         # Size of each space should be more or equal to 0
         for _ in range(self.x_amount):
@@ -448,9 +477,9 @@ class DynamicAllocationLinearProgram(object):
         # higher for those spaces which defined earlier
         # in the list
 
-        # TODO describe why we should use special sequence
+        # TODO(eli): describe why we should use special sequence
         # as order coefficients
-        coefficients = [1.0/i for i in CrossSumInequalitySequence(c_amount)]
+        coefficients = [1.0 / i for i in CrossSumInequalitySequence(c_amount)]
 
         NONE_ORDER_COEFF = 1
         SET_COEFF = 2
@@ -484,7 +513,8 @@ class DynamicAllocationLinearProgram(object):
                             coefficients[c_i] += SET_COEFF
                         else:
                             # If current disk is not in the set, set it to 0
-                            # TODO isn't it better to leave there order coefficient?
+                            # TODO(eli): isn't it better to leave there order
+                            # coefficient?
                             # coefficients[c_i] = 0
                             pass
                     else:
