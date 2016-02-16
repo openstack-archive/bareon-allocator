@@ -1,0 +1,32 @@
+name: Spaces with only specific sizes
+
+dynamic_schema:
+  - id: lv1
+    type: lv
+    size: 15
+
+  - id: lv2
+    type: lv
+    size: 10
+
+  - id: vg1
+    type: vg
+    contains:
+      - lv1
+      - lv2
+
+hw_info:
+  disks:
+    - id: sda
+      size: 100
+
+expected:
+  - disk_id: sda
+    size: 100
+    spaces:
+      - space_id: lv1
+        size: 15
+      - space_id: lv2
+        size: 10
+      - space_id: unallocated
+        size: 75
