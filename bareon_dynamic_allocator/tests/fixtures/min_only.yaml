@@ -1,0 +1,32 @@
+name: Minimal size with a single disk
+
+dynamic_schema:
+  - id: lv1
+    type: lv
+    min_size: 50
+
+  - id: lv2
+    type: lv
+    min_size: 50
+
+  - id: vg1
+    type: vg
+    contains:
+      - lv1
+      - lv2
+
+hw_info:
+  disks:
+    - id: sda
+      size: 100
+
+expected:
+  - disk_id: sda
+    size: 100
+    spaces:
+      - space_id: lv1
+        size: 50
+      - space_id: lv2
+        size: 50
+      - space_id: unallocated
+        size: 0
