@@ -38,12 +38,14 @@ class TestGeneratorMeta(type):
 
     def __new__(mcs, name, bases, cls_dict):
 
-        def gen_test(hw_info, dynamic_schema, expected):
+        def gen_test(hw_info, dynamic_schema, expected, doc):
             def test(self):
                 result = DynamicAllocator(
                     hw_info,
                     dynamic_schema).generate_static()
                 self.assertEqual(expected, result)
+
+            test.__doc__ = doc
             return test
 
         for f in glob.glob(fixtures_path):
@@ -55,7 +57,8 @@ class TestGeneratorMeta(type):
                 cls_dict[test_name] = gen_test(
                     data['hw_info'],
                     data['dynamic_schema'],
-                    data['expected'])
+                    data['expected'],
+                    data['name'])
 
         return type.__new__(mcs, name, bases, cls_dict)
 
