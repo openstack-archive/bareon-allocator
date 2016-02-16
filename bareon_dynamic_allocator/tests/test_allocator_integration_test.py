@@ -49,11 +49,11 @@ class TestGeneratorMeta(type):
             return test
 
         for f in glob.glob(fixtures_path):
+            file_name = os.path.splitext(os.path.basename(f))[0]
             with open(f, 'r') as fd:
                 data = yaml.load(fd)
 
-                method_name = data['name'].replace(' ', '_').lower()
-                test_name = 'test_{0}'.format(method_name)
+                test_name = 'test_{0}'.format(file_name)
                 cls_dict[test_name] = gen_test(
                     data['hw_info'],
                     data['dynamic_schema'],
