@@ -1,0 +1,102 @@
+name: Three disks ceph example
+
+dynamic_schema:
+
+  - id: os
+    type: vg
+    contains:
+      - id: swap
+      - id: root
+
+  - id: root
+    type: lv
+    size: 30
+
+  - id: swap
+    type: lv
+    size: |
+      yaql=$.ram * 2
+
+  - id: logs
+    type: vg
+    contains:
+      - id: log
+
+  - id: log
+    type: lv
+    min_size: 10
+    max_size: 20
+
+  - id: ceph
+    type: partitions
+
+  - id: ceph-journal
+    type: partitions
+    max_size: 20
+    best_with_disks: |
+      yaql=$.disks.where($.type = "ssd")
+
+
+hw_info:
+  ram: 20
+  disks:
+    - id: sda
+      type: hdd
+      size: 100
+
+    - id: sdb
+      type: hdd
+      size: 100
+
+    - id: sdc
+      type: ssd
+      size: 10
+
+expected:
+  - disk_id: sda
+    size: 100
+    spaces:
+      - space_id: root
+        size: 30
+      - space_id: swap
+        size: 40
+      - space_id: log
+        size: 20
+      - space_id: ceph
+        size: 10
+      - space_id: ceph-journal
+        size: 0
+      - space_id: unallocated
+        size: 0
+
+  - disk_id: sdb
+    size: 100
+    spaces:
+      - space_id: root
+        size: 0
+      - space_id: swap
+        size: 0
+      - space_id: log
+        size: 0
+      - space_id: ceph
+        size: 100
+      - space_id: ceph-journal
+        size: 0
+      - space_id: unallocated
+        size: 0
+
+  - disk_id: sdc
+    size: 10
+    spaces:
+      - space_id: root
+        size: 0
+      - space_id: swap
+        size: 0
+      - space_id: log
+        size: 0
+      - space_id: ceph
+        size: 0
+      - space_id: ceph-journal
+        size: 10
+      - space_id: unallocated
+        size: 0
