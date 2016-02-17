@@ -1,0 +1,38 @@
+name: First is max, second is min, third has specific size
+
+dynamic_schema:
+  - id: lv1
+    type: lv
+    max_size: 20
+
+  - id: lv2
+    type: lv
+    min_size: 20
+
+  - id: lv3
+    type: lv
+    size: 50
+
+  - id: vg1
+    type: vg
+    contains:
+      - lv1
+      - lv2
+
+hw_info:
+  disks:
+    - id: sda
+      size: 100
+
+expected:
+  - disk_id: sda
+    size: 100
+    spaces:
+      - space_id: lv1
+        size: 20
+      - space_id: lv2
+        size: 30
+      - space_id: lv3
+        size: 50
+      - space_id: unallocated
+        size: 0

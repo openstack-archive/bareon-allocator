@@ -1,0 +1,33 @@
+name: First is min, second is max 
+
+dynamic_schema:
+  - id: lv1
+    type: lv
+    min_size: 20
+
+  - id: lv2
+    type: lv
+    max_size: 20
+
+  - id: vg1
+    type: vg
+    contains:
+      - lv1
+      - lv2
+
+hw_info:
+  disks:
+    - id: sda
+      size: 100
+
+expected:
+  - disk_id: sda
+    size: 100
+    spaces:
+      # TODO figure out if this is expected behaviour
+      - space_id: lv1
+        size: 100
+      - space_id: lv2
+        size: 0
+      - space_id: unallocated
+        size: 0
