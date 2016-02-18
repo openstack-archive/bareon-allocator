@@ -18,13 +18,14 @@ import itertools
 import math
 
 import numpy as np
-import six
 
 from oslo_log import log
 from scipy.optimize import linprog
 from termcolor import colored
 
 from bareon_dynamic_allocator import errors
+from bareon_dynamic_allocator.objects import Disk
+from bareon_dynamic_allocator.objects import Space
 from bareon_dynamic_allocator.parser import Parser
 from bareon_dynamic_allocator.sequences import CrossSumInequalitySequence
 
@@ -77,35 +78,6 @@ def format_equation(matrix, vector, row_len):
         equation.append(line)
 
     return '\n'.join(equation)
-
-
-class Disk(object):
-
-    def __init__(self, **kwargs):
-        for k, v in six.iteritems(kwargs):
-            setattr(self, k, v)
-
-
-class Space(object):
-
-    def __init__(self, **kwargs):
-        for k, v in six.iteritems(kwargs):
-            setattr(self, k, v)
-
-        # If no min_size specified set it to 0
-        if not kwargs.get('min_size'):
-            self.min_size = 0
-
-        # Exact size can be repreneted as min_size and max_size
-        if kwargs.get('size'):
-            self.min_size = kwargs.get('size')
-            self.max_size = kwargs.get('size')
-
-        if not kwargs.get('best_with_disks'):
-            self.best_with_disks = set([])
-
-    def __repr__(self):
-        return str(self.__dict__)
 
 
 class DynamicAllocator(object):
