@@ -16,5 +16,6 @@
 
 # flake8: noqa
 
+from bareon_dynamic_allocator.objects.base import BaseObject
 from bareon_dynamic_allocator.objects.disk import Disk
 from bareon_dynamic_allocator.objects.space import Space

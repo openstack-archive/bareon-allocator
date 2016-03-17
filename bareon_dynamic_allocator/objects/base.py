@@ -14,28 +14,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from bareon_dynamic_allocator.objects import BaseObject
+import abc
 
 import six
 
 
-class Space(BaseObject):
-
-    def __init__(self, **kwargs):
-        for k, v in six.iteritems(kwargs):
-            setattr(self, k, v)
-
-        # If no min_size specified set it to 0
-        if not kwargs.get('min_size'):
-            self.min_size = 0
-
-        # Exact size can be repreneted as min_size and max_size
-        if kwargs.get('size'):
-            self.min_size = kwargs.get('size')
-            self.max_size = kwargs.get('size')
-
-        if not kwargs.get('best_with_disks'):
-            self.best_with_disks = set([])
-
-    def __repr__(self):
-        return str(self.__dict__)
+@six.add_metaclass(abc.ABCMeta)
+class BaseObject(object):
+    """Base class for Bareon Allocator Objects."""

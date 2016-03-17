@@ -14,10 +14,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from bareon_dynamic_allocator.objects import BaseObject
+
 import six
 
 
-class Disk(object):
+class Disk(BaseObject):
 
     def __init__(self, **kwargs):
         for k, v in six.iteritems(kwargs):
