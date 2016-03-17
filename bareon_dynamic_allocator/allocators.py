@@ -23,11 +23,9 @@ from oslo_log import log
 from scipy.optimize import linprog
 
 from bareon_dynamic_allocator import errors
+from bareon_dynamic_allocator.parsers import DynamicSchemaParser
 from bareon_dynamic_allocator import utils
 
-from bareon_dynamic_allocator.objects import Disk
-from bareon_dynamic_allocator.objects import Space
-from bareon_dynamic_allocator.parser import Parser
 from bareon_dynamic_allocator.sequences import CrossSumInequalitySequence
 
 
@@ -37,55 +35,20 @@ LOG = log.getLogger(__name__)
 class DynamicAllocator(object):
 
     def __init__(self, hw_info, schema):
-        LOG.debug('Hardware information: \n%s', hw_info)
-        LOG.debug('Spaces schema: \n%s', schema)
-        self.hw_info = hw_info
-        self.raw_disks = hw_info['disks']
-        self.disks = [Disk(**disk) for disk in self.raw_disks]
-        rendered_spaces = self.convert_disks_to_indexes(
-            Parser(schema, hw_info).parse(),
-            hw_info)
-        LOG.debug('Rendered spaces schema: \n%s', rendered_spaces)
-        self.spaces = [Space(**space)
-                       for space in rendered_spaces if space['type'] != 'vg']
+        LOG.debug('Hardware information: %s', hw_info)
+        LOG.debug('Spaces schema: %s', schema)
+        dynamic_schema = DynamicSchemaParser(hw_info, schema)
+        LOG.debug('Spaces objects: %s', dynamic_schema.spaces)
+        LOG.debug('Disks objects: \n%s', dynamic_schema.disks)
 
-        # Unallocated is required in order to be able to specify
-        # spaces with only minimal
-        self.spaces.append(Space(
-            id='unallocated',
-            type='unallocated',
-            none_order=True,
-            weight=0))
-
-        # Add fake volume Unallocated, in order to be able
-        # to have only volumes with minimal size, without
-        # additional space allocation
-        self.solver = DynamicAllocationLinearProgram(self.disks, self.spaces)
+        self.solver = DynamicAllocationLinearProgram(
+            dynamic_schema.disks,
+            dynamic_schema.spaces)
 
     def generate_static(self):
         sizes = self.solver.solve()
 
         return sizes
-
-    def convert_disks_to_indexes(self, spaces, hw_info):
-        """Convert disks to indexes.
-
-        Convert disks which are specified in `best_with_disks`
-        to a list of indexes in `disks` list.
-        """
-        for i, space in enumerate(spaces):
-
-            if space.get('best_with_disks'):
-                disks_idx = set()
-                for disk in space['best_with_disks']:
-                    try:
-                        disks_idx.add(self.raw_disks.index(disk))
-                    except ValueError as exc:
-                        LOG.warn('Warning: %s', exc)
-
-                spaces[i]['best_with_disks'] = disks_idx
-
-        return spaces
 
 
 class DynamicAllocationLinearProgram(object):

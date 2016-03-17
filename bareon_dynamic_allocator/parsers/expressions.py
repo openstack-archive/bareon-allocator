@@ -53,7 +53,7 @@ class NoopParser(object):
         return self.data
 
 
-class Parser(object):
+class ExpressionsParser(object):
 
     yaql_re = re.compile(r'^\s*yaql\s*=\s*')
 

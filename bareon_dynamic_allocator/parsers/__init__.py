@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #    Copyright 2016 Mirantis, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,24 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from bareon_dynamic_allocator.objects import BaseObject
+# flake8: noqa
 
-
-class Space(BaseObject):
-
-    properties = {
-        'id': None,
-        'min_size': 0,
-        'max_size': None,
-        'best_with_disks': set([]),
-        'weight': 1
-    }
-    required = ['id', 'type']
-
-    def __init__(self, **kwargs):
-        super(Space, self).__init__(**kwargs)
-
-        # Exact size should be repreneted as min_size and max_size
-        if kwargs.get('size'):
-            self.min_size = kwargs.get('size')
-            self.max_size = kwargs.get('size')
+from bareon_dynamic_allocator.parsers.expressions import ExpressionsParser
+from bareon_dynamic_allocator.parsers.dynamic_schema_parser import DynamicSchemaParser
