@@ -19,3 +19,7 @@ class BareonDynamicAllocator(Exception):
 
 class NoSolutionFound(BareonDynamicAllocator):
     pass
+
+
+class InvalidData(BareonDynamicAllocator):
+    pass

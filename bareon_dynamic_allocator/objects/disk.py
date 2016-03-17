@@ -16,11 +16,14 @@
 
 from bareon_dynamic_allocator.objects import BaseObject
 
-import six
-
 
 class Disk(BaseObject):
 
+    properties = {
+        'id': None,
+        'size': 0,
+    }
+    required_properties = ['id']
+
     def __init__(self, **kwargs):
-        for k, v in six.iteritems(kwargs):
-            setattr(self, k, v)
+        super(Disk, self).__init__(**kwargs)

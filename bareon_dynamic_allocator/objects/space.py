@@ -16,26 +16,22 @@
 
 from bareon_dynamic_allocator.objects import BaseObject
 
-import six
-
 
 class Space(BaseObject):
 
+    properties = {
+        'id': None,
+        'min_size': 0,
+        'max_size': None,
+        'best_with_disks': set([]),
+        'weight': 1
+    }
+    required = ['id']
+
     def __init__(self, **kwargs):
-        for k, v in six.iteritems(kwargs):
-            setattr(self, k, v)
+        super(Space, self).__init__(**kwargs)
 
-        # If no min_size specified set it to 0
-        if not kwargs.get('min_size'):
-            self.min_size = 0
-
-        # Exact size can be repreneted as min_size and max_size
+        # Exact size should be repreneted as min_size and max_size
         if kwargs.get('size'):
             self.min_size = kwargs.get('size')
             self.max_size = kwargs.get('size')
-
-        if not kwargs.get('best_with_disks'):
-            self.best_with_disks = set([])
-
-    def __repr__(self):
-        return str(self.__dict__)
