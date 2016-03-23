@@ -18,7 +18,7 @@ import abc
 
 from copy import deepcopy
 
-from bareon_dynamic_allocator import errors
+from bareon_allocator import errors
 
 import six
 

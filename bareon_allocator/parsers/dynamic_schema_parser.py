@@ -14,9 +14,9 @@
 
 from oslo_log import log
 
-from bareon_dynamic_allocator.objects import Disk
-from bareon_dynamic_allocator.objects import Space
-from bareon_dynamic_allocator.parsers import ExpressionsParser
+from bareon_allocator.objects import Disk
+from bareon_allocator.objects import Space
+from bareon_allocator.parsers import ExpressionsParser
 
 
 LOG = log.getLogger(__name__)

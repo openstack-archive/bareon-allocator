@@ -22,11 +22,11 @@ import numpy as np
 from oslo_log import log
 from scipy.optimize import linprog
 
-from bareon_dynamic_allocator import errors
-from bareon_dynamic_allocator.parsers import DynamicSchemaParser
-from bareon_dynamic_allocator import utils
+from bareon_allocator import errors
+from bareon_allocator.parsers import DynamicSchemaParser
+from bareon_allocator import utils
 
-from bareon_dynamic_allocator.sequences import CrossSumInequalitySequence
+from bareon_allocator.sequences import CrossSumInequalitySequence
 
 
 LOG = log.getLogger(__name__)

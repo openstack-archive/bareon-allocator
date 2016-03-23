@@ -17,9 +17,9 @@ import sys
 from oslo_config import cfg
 from oslo_log import log
 
-from bareon_dynamic_allocator.allocators import DynamicAllocator
-from bareon_dynamic_allocator import utils
-from bareon_dynamic_allocator import viewer
+from bareon_allocator.allocators import DynamicAllocator
+from bareon_allocator import utils
+from bareon_allocator import viewer
 
 
 cli_opts = [
@@ -56,7 +56,7 @@ def make_config():
 
 
 def parse_args(conf, args=None):
-    project = 'bareon_dynamic_allocator'
+    project = 'bareon_allocator'
     version = '1.0.0'
     conf(args=args if args else sys.argv[1:],
          project=project,

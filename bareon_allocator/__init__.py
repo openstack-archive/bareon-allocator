@@ -12,17 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""
-test_bareon_dynamic_allocator
-----------------------------------
-
-Tests for `bareon_dynamic_allocator` module.
-"""
-
-from bareon_dynamic_allocator.tests import base
+import pbr.version
 
 
-class TestBareon_dynamic_allocator(base.TestCase):
-
-    def test_something(self):
-        pass
+__version__ = pbr.version.VersionInfo(
+    'bareon_allocator').version_string()

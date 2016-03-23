@@ -17,9 +17,9 @@ import six
 
 from glob import glob
 
-from bareon_dynamic_allocator.allocators import DynamicAllocator
-from bareon_dynamic_allocator import utils
-from bareon_dynamic_allocator import viewer
+from bareon_allocator.allocators import DynamicAllocator
+from bareon_allocator import utils
+from bareon_allocator import viewer
 
 
 doc_schemas_path = os.path.join(

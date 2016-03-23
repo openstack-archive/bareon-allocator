@@ -17,7 +17,7 @@ from bareon.drivers.base import PartitioningDataDriverMixin
 from bareon import objects
 from bareon.openstack.common import log
 
-from bareon_dynamic_allocator import allocators
+from bareon_allocator import allocators
 
 
 # Logger for bareon-dynamic allocator should be configured
