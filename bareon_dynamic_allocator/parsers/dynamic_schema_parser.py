@@ -16,7 +16,7 @@ from oslo_log import log
 
 from bareon_dynamic_allocator.objects import Disk
 from bareon_dynamic_allocator.objects import Space
-from bareon_dynamic_allocator.parser import Parser
+from bareon_dynamic_allocator.parsers import ExpressionsParser
 
 
 LOG = log.getLogger(__name__)
@@ -58,7 +58,7 @@ class DynamicSchemaParser(object):
 
     def render_expressions(self):
         self.rendered_spaces = self._convert_disks_to_indexes(
-            Parser(self.schema, self.hw_info).parse(),
+            ExpressionsParser(self.schema, self.hw_info).parse(),
             self.hw_info)
 
     def _convert_disks_to_indexes(self, spaces, hw_info):
