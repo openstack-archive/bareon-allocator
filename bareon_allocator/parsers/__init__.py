@@ -14,5 +14,5 @@
 
 # flake8: noqa
 
-from bareon_dynamic_allocator.parsers.expressions import ExpressionsParser
-from bareon_dynamic_allocator.parsers.dynamic_schema_parser import DynamicSchemaParser
+from bareon_allocator.parsers.expressions import ExpressionsParser
+from bareon_allocator.parsers.dynamic_schema_parser import DynamicSchemaParser

@@ -27,8 +27,8 @@ import os
 import six
 import yaml
 
-from bareon_dynamic_allocator.allocators import DynamicAllocator
-from bareon_dynamic_allocator.tests import base
+from bareon_allocator.allocators import DynamicAllocator
+from bareon_allocator.tests import base
 
 fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures', '*.yaml')
 

@@ -14,7 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from bareon_dynamic_allocator.objects import BaseObject
+from bareon_allocator.objects import BaseObject
 
 
 class Space(BaseObject):

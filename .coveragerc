@@ -1,7 +1,7 @@
 [run]
 branch = True
-source = bareon_dynamic_allocator
-omit = bareon_dynamic_allocator/openstack/*
+source = bareon_allocator
+omit = bareon_allocator/openstack/*
 
 [report]
 ignore_errors = True
