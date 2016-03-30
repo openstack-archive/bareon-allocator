@@ -70,13 +70,13 @@ class DynamicSchemaParser(object):
         for i, space in enumerate(spaces):
 
             if space.get('best_with_disks'):
-                disks_idx = set()
+                disks_ids = set()
                 for disk in space['best_with_disks']:
                     try:
-                        disks_idx.add(self.raw_disks.index(disk))
+                        disks_ids.add(disk['id'])
                     except ValueError as exc:
                         LOG.warn('Warning: %s', exc)
 
-                spaces[i]['best_with_disks'] = disks_idx
+                spaces[i]['best_with_disks'] = disks_ids
 
         return spaces
