@@ -14,26 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from bareon_allocator.objects import BaseObject
+
+from bareon_allocator.solvers.utils import round_vector_down
+from bareon_allocator.tests import base
 
 
-class Space(BaseObject):
+class TestSolversLinearProgramCreator(base.TestCase):
 
-    properties = {
-        'id': None,
-        'min_size': 0,
-        'max_size': None,
-        'best_with_disks': set([]),
-        'weight': 1,
-        'none_order': False,
-        'type': None
-    }
-    required = ['id', 'type']
-
-    def __init__(self, **kwargs):
-        super(Space, self).__init__(**kwargs)
-
-        # Exact size should be represented as min_size and max_size
-        if kwargs.get('size'):
-            self.min_size = kwargs.get('size')
-            self.max_size = kwargs.get('size')
+    def test_round_down(self):
+        self.assertEqual(
+            round_vector_down([1.9, 2.0, 3.1]),
+            [1, 2, 3])

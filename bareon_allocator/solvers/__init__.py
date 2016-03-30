@@ -14,26 +14,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from bareon_allocator.objects import BaseObject
+# flake8: noqa
 
-
-class Space(BaseObject):
-
-    properties = {
-        'id': None,
-        'min_size': 0,
-        'max_size': None,
-        'best_with_disks': set([]),
-        'weight': 1,
-        'none_order': False,
-        'type': None
-    }
-    required = ['id', 'type']
-
-    def __init__(self, **kwargs):
-        super(Space, self).__init__(**kwargs)
-
-        # Exact size should be represented as min_size and max_size
-        if kwargs.get('size'):
-            self.min_size = kwargs.get('size')
-            self.max_size = kwargs.get('size')
+from bareon_allocator.solvers.base import BaseSolver
+from bareon_allocator.solvers.linear_program import LinearProgram
+from bareon_allocator.solvers.linear_programming_scipy_solver \
+    import LinearProgrammingScipySolver
+from bareon_allocator.solvers.linear_program_creator \
+    import LinearProgramCreator

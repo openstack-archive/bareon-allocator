@@ -14,26 +14,20 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from bareon_allocator.objects import BaseObject
+
+from bareon_allocator.parsers import ExpressionsParser
+from bareon_allocator.tests import base
 
 
-class Space(BaseObject):
+class TestParsersExpressions(base.TestCase):
 
-    properties = {
-        'id': None,
-        'min_size': 0,
-        'max_size': None,
-        'best_with_disks': set([]),
-        'weight': 1,
-        'none_order': False,
-        'type': None
-    }
-    required = ['id', 'type']
+    def test_substitutes_value_recursively(self):
+        parsed = ExpressionsParser(
+            [{'key1': 'key2'},
+             {'list': [{'list_key': 'yaql=$.some_key'}]}],
+            {'some_key': 'some_value'}).parse()
 
-    def __init__(self, **kwargs):
-        super(Space, self).__init__(**kwargs)
-
-        # Exact size should be represented as min_size and max_size
-        if kwargs.get('size'):
-            self.min_size = kwargs.get('size')
-            self.max_size = kwargs.get('size')
+        self.assertEqual(
+            parsed,
+            [{'key1': 'key2'},
+             {'list': [{'list_key': 'some_value'}]}])
