@@ -673,7 +673,7 @@ or
 
 #. Build sets according to selected disks, in our case we have two sets, **hdd** and **ssd** disks.
 #. For spaces which belong to specific set of disks add **1** to a coefficient which represents this space on a disk from the set.
-#. If space does not belong to the set of disks, add **0**.
+#. Spaces which do not belong to any disks sets are assigned to set of disks which is left, in our case it is **hdd** disks set.
 
 To make sure that spaces are always (unless size constraints are not violated) allocated on the disks which they best suited with,
 we automatically add a special artificial volume **unallocated**, whose coefficient is always **1**, and in this case we should change
