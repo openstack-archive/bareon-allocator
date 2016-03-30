@@ -14,26 +14,25 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from bareon_allocator.objects import BaseObject
+import abc
+
+import six
 
 
-class Space(BaseObject):
+@six.add_metaclass(abc.ABCMeta)
+class BaseSolver(object):
+    """Base class for Bareon Allocator Objects."""
 
-    properties = {
-        'id': None,
-        'min_size': 0,
-        'max_size': None,
-        'best_with_disks': set([]),
-        'weight': 1,
-        'none_order': False,
-        'type': None
-    }
-    required = ['id', 'type']
+    def __init__(self, linear_program):
+        """Initialize object.
 
-    def __init__(self, **kwargs):
-        super(Space, self).__init__(**kwargs)
+        :param linear_program: `class`:LinearProgram object
+        """
+        self.linear_program = linear_program
 
-        # Exact size should be represented as min_size and max_size
-        if kwargs.get('size'):
-            self.min_size = kwargs.get('size')
-            self.max_size = kwargs.get('size')
+    @abc.abstractmethod
+    def solve(self):
+        """Returns solution hash.
+
+        :raises: errors.NoSolutionFound
+        """
