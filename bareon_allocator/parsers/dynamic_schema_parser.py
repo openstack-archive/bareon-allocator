@@ -31,6 +31,12 @@ class DynamicSchemaParser(object):
         self.rendered_spaces = []
         self.disks = []
         self.spaces = []
+        # TODO(eli): In the future should be moved into config.
+        self.strategies = {
+            'vg': {'strategy': 'container'},
+            'lv': {'strategy': 'elastic'},
+            'partitions': {'strategy': 'elastic'}
+        }
 
         self.parse()
         self.post_parse()
@@ -42,9 +48,12 @@ class DynamicSchemaParser(object):
             Disk(**disk)
             for disk in self.raw_disks]
 
-        self.spaces = [
-            Space(**space)
-            for space in self.rendered_spaces if space['type'] != 'vg']
+        for s in self.rendered_spaces:
+            strategy = self.strategies.get(s['type'], {}).get('strategy')
+            if strategy == 'elastic':
+                self.spaces.append(Space(**s))
+            elif strategy is None:
+                LOG.warn('There is not strategy for space %s', s)
 
     def post_parse(self):
         # Add fake volume Unallocated, in order to be able
