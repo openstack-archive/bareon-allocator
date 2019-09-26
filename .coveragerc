@@ -1,7 +1,0 @@
-[run]
-branch = True
-source = bareon_allocator
-omit = bareon_allocator/openstack/*
-
-[report]
-ignore_errors = True
